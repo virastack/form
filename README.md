@@ -63,7 +63,7 @@ function App() {
 
 ## Ecosystem
 
-Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://virastack.com/academy) · [Start](https://virastack.com/start) · [AI](https://virastack.com/ai) · [Mask](https://virastack.com/mask) · [Guide](https://virastack.com/guide)
+Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Mask](https://github.com/virastack/mask) · [Guide](https://github.com/virastack/guide)
 
 ## License
 
