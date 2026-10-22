@@ -1,7 +1,7 @@
 {
   "name": "@virastack/mask",
   "version": "1.1.1",
-  "description": "A lightweight, zero-dependency masking library for React Hook Form",
+  "description": "Zero-dependency input masking for React Hook Form: phone, credit card, currency and more",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",
