@@ -8,7 +8,7 @@
   </picture>
 </a>
 
-*The lightweight standard for input formatting and state synchronization in React.*
+*Zero-dependency input masking for React Hook Form: phone, credit card, currency and more*
 
 [![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23615fff)](https://virastack.com/mask/)
 [![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
@@ -22,12 +22,12 @@
 
 ### [Read the full documentation →](https://virastack.com/mask/)
 
-## Why ViraStack Mask?
+## Features
 
-- **Ultra-lightweight:** Less than 5KB minified & zipped, minimizing your bundle size.
-- **React-First:** Seamless integration with React Hook Form, eliminating state synchronization issues.
-- **Type-Safe:** Built with TypeScript for an excellent developer experience and robust autocompletion.
-- **Smart Presets:** Built-in masks for credit cards, phones, currency, and more, saving you development time.
+- **Lightweight:** ~5KB minified.
+- **React Hook Form:** Works with your form state, no extra syncing.
+- **Type-safe:** Typed schema, options and presets.
+- **Presets:** Card, phone, currency, IBAN and more.
 
 ## Quick Start
 
@@ -41,7 +41,7 @@ import { useViraMask } from '@virastack/mask';
 
 function App() {
   const form = useForm();
-  
+
   const { phone } = useViraMask({
     form,
     schema: {
@@ -57,16 +57,21 @@ function App() {
 }
 ```
 
-## Explore the ViraStack Ecosystem
+## API
 
-Discover all ViraStack tools, libraries, and boilerplates at [**virastack.com**](https://virastack.com).
+`useViraMask({ form, schema })` returns one field object per schema key. Spread it on an `<input>`.
+
+| Schema value | Description |
+| :--- | :--- |
+| Preset name | `card`, `expiry`, `cvv`, `phone`, `currency`, `iban`, `date`, `zipCode`, `numeric` and more |
+| Options object | `mask`, `transform`, `allowedChars`, `currency`, `validator`, `preset` and more |
+
+Each field also exposes `rawValue`, the unmasked value.
+
+## Ecosystem
+
+Part of the [ViraStack](https://virastack.com) ecosystem.
 
 ## License
 
-Licensed under the [MIT License](https://github.com/virastack/mask/blob/main/LICENSE).
-
-## Maintainer
-
-A project by [**Ömer Gülçiçek**](https://omergulcicek.com)
-
-[![Follow Ömer Gülçiçek](https://img.shields.io/github/followers/omergulcicek?label=Follow&style=social)](https://github.com/omergulcicek)
+[MIT](LICENSE) © [Ömer Gülçiçek](https://omergulcicek.com)
