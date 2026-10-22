@@ -1,7 +1,7 @@
 {
   "name": "@virastack/password",
   "version": "1.0.2",
-  "description": "Fully accessible and customizable password visibility hook for React.",
+  "description": "Accessible, customizable password visibility hook for React",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",
