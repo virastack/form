@@ -102,6 +102,26 @@ describe("pattern engine", () => {
 });
 
 describe("presets", () => {
+  it.each([
+    ["+90 555 123 45 67"],
+    ["+905551234567"],
+    ["0090 555 123 45 67"],
+    ["0555 123 45 67"],
+    ["555 123 45 67"],
+  ])("phone TR accepts %s typed key by key, and never shows the country code", (text) => {
+    const mask = createMask({ preset: "phone", country: "TR" });
+    let display = "";
+    const seen: string[] = [];
+    for (const char of text) {
+      display = mask.edit({ previous: display, value: display + char, selectionStart: display.length + 1 }).display;
+      seen.push(display);
+    }
+    expect(display).toBe("(555) 123 45 67");
+    expect(mask.parse(display)).toBe("5551234567");
+    // no intermediate "(905" or "(055" while typing
+    expect(seen.some((d) => d.startsWith("(905") || d.startsWith("(05"))).toBe(false);
+  });
+
   it("phone with country TR strips a leading 0 and the country code", () => {
     const mask = createMask({ preset: "phone", country: "TR" });
     expect(type(mask, "05551234567").value).toBe("5551234567");

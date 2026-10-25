@@ -36,12 +36,17 @@ const phone = definePreset("phone", {
   autoComplete: "tel",
 });
 
-/** `{ preset: "phone", country: "TR" }`: national Turkish layout, 10-digit value. */
+/**
+ * `{ preset: "phone", country: "TR" }`: national Turkish layout, 10-digit value.
+ * Users may start with +90, 0090, 0 or the number itself (555…).
+ */
 const phoneTR = definePreset("phone", {
   mask: "(999) 999 99 99",
   normalize: (value: string) => {
-    let d = digits(value);
-    if (d.length > 10 && d.startsWith("90")) d = d.slice(2);
+    let d = digits(value).replace(/^00(?=90)/, "");
+    // Turkish numbers start with 2–5 or 8 after the country code, so "90" followed by one of
+    // those is the country code, not part of the number; drop it as soon as it is recognisable.
+    if (d.startsWith("90") && (d.length > 10 || /^90[2-58]/.test(d))) d = d.slice(2);
     return d.replace(/^0+/, "");
   },
   inputMode: "tel",
