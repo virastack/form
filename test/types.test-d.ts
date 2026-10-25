@@ -64,6 +64,7 @@ describe("types", () => {
       phone: { preset: "phone", country: "TR" },
       iban: { preset: "iban", country: "TR" },
     });
+    useViraMask(form, { card: { preset: "currency", country: "TR" } });
     // @ts-expect-error card has no country layout
     useViraMask(form, { card: { preset: "card", country: "TR" } });
     // @ts-expect-error only TR is supported

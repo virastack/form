@@ -44,7 +44,7 @@ export interface PatternConfig {
 }
 
 export interface NumberConfig {
-  /** BCP 47 locale for separators. Default `tr-TR`. */
+  /** BCP 47 locale for separators. Default `en-US`; `country: "TR"` uses `tr-TR`. */
   locale?: string;
   min?: number;
   max?: number;
@@ -55,13 +55,13 @@ export interface NumberConfig {
 }
 
 export interface CurrencyConfig {
-  /** ISO 4217 code. Default `TRY`. A linked field (`from`) holding a code overrides it. */
+  /** ISO 4217 code. Without one there is no symbol. A linked field (`from`) holding a code overrides it. */
   code?: string;
   /** BCP 47 locale. Default `tr-TR` for TRY, `en-US` otherwise. */
   locale?: string;
   min?: number;
   max?: number;
-  /** Fraction digits. Defaults to the currency's own (2 for TRY, 0 for JPY). */
+  /** Fraction digits. Defaults to the currency's own (2 for TRY, 0 for JPY), 2 without a code. */
   scale?: number;
   signed?: boolean;
 }

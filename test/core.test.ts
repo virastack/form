@@ -185,8 +185,15 @@ describe("presets", () => {
 });
 
 describe("number and currency", () => {
-  it("formats TRY with Intl and keeps kuruş", () => {
+  it("the global default has two decimals and no symbol", () => {
     const mask = createMask("currency");
+    expect(mask.format("1234.56")).toBe("1,234.56");
+    expect(mask.parse("1,234.56")).toBe("1234.56");
+    expect(createMask("number").format("1234")).toBe("1,234");
+  });
+
+  it("country TR formats TRY with Intl and keeps kuruş", () => {
+    const mask = createMask({ preset: "currency", country: "TR" });
     expect(mask.format("1234.56")).toBe("₺1.234,56");
     expect(mask.parse("₺1.234,56")).toBe("1234.56");
     expect(type(mask, "1234,56").display).toBe("₺1.234,56");
@@ -194,7 +201,7 @@ describe("number and currency", () => {
   });
 
   it("accepts a typed dot as the decimal in tr-TR", () => {
-    const mask = createMask("currency");
+    const mask = createMask({ preset: "currency", country: "TR" });
     expect(type(mask, "1234.5").value).toBe("1234.5");
   });
 
@@ -203,12 +210,21 @@ describe("number and currency", () => {
     expect(mask.format("1234.5", { from: "USD" })).toBe("$1,234.5");
     expect(mask.format("1234.5", { from: "EUR" })).toBe("€1,234.5");
     expect(mask.format("1234.5", { from: "TRY" })).toBe("₺1.234,5");
+    // country TR keeps Turkish separators for any linked currency
+    const tr = createMask({ preset: "currency", country: "TR" });
+    expect(tr.format("1234.5", { from: "USD" })).toBe("$1.234,5");
+  });
+
+  it("country TR on number uses Turkish separators", () => {
+    const mask = createMask({ preset: "number", country: "TR", number: { scale: 2 } });
+    expect(mask.format("1234.5")).toBe("1.234,5");
+    expect(mask.parse("1.234,5")).toBe("1234.5");
   });
 
   it("truncates to the currency scale", () => {
     const mask = createMask({ currency: "JPY" });
     expect(type(mask, "1234.56").value).toBe("123456");
-    expect(type(createMask("currency"), "1,999").value).toBe("1.99");
+    expect(type(createMask({ preset: "currency", country: "TR" }), "1,999").value).toBe("1.99");
   });
 
   it("number clamps max while typing and min on blur", () => {
@@ -219,13 +235,13 @@ describe("number and currency", () => {
   });
 
   it("backspace over a group separator removes the digit before it", () => {
-    const mask = createMask({ number: {} });
+    const mask = createMask({ preset: "number", country: "TR" });
     const result = backspace(mask, "1.234", 2);
     expect(result.display).toBe("234");
   });
 
   it("keeps a trailing decimal while typing", () => {
-    const mask = createMask("currency");
+    const mask = createMask({ preset: "currency", country: "TR" });
     const result = type(mask, "12,");
     expect(result.display).toBe("₺12,");
     expect(result.value).toBe("12");

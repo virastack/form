@@ -129,7 +129,7 @@ describe("useViraMask with React Hook Form", () => {
 
     await user.type(screen.getByLabelText("amount"), "1234");
     expect(api.form.getValues("amount")).toBe(1234);
-    expect(screen.getByLabelText<HTMLInputElement>("amount").value).toBe("1.234");
+    expect(screen.getByLabelText<HTMLInputElement>("amount").value).toBe("1,234");
   });
 
   it("validates with error keys and clears them when fixed", async () => {

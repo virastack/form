@@ -17,6 +17,8 @@ const specs: Record<string, MaskSpec> = {
   dateUS: { date: { format: "MM/DD/YYYY" } },
   dateISO: { date: { format: "YYYY-MM-DD" } },
   currency: "currency",
+  currencyTR: { preset: "currency", country: "TR" },
+  numberTR: { preset: "number", country: "TR", number: { scale: 2, signed: true } },
   currencyUSD: { currency: "USD" },
   number: { number: { signed: true, scale: 2, min: -5000, max: 5000 } },
   optional: { mask: "99999[-9999]" },

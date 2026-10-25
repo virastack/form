@@ -97,8 +97,13 @@ const vkn = definePreset("vkn", {
   autoComplete: "off",
 });
 
-const currency = definePreset("currency", { currency: { code: "TRY" }, autoComplete: "off" });
+/** Two decimals without a symbol (`1,234.56`); pass a code or `country` for one. */
+const currency = definePreset("currency", { currency: {}, autoComplete: "off" });
+/** `{ preset: "currency", country: "TR" }`: TRY with Turkish separators, `₺1.234,56`. */
+const currencyTR = definePreset("currency", { currency: { code: "TRY", locale: "tr-TR" }, autoComplete: "off" });
 const number = definePreset("number", { number: {}, autoComplete: "off" });
+/** `{ preset: "number", country: "TR" }`: Turkish separators, `1.234,5`. */
+const numberTR = definePreset("number", { number: { locale: "tr-TR" }, autoComplete: "off" });
 const date = definePreset("date", { date: { format: "DD/MM/YYYY" } });
 
 export const presets = Object.freeze({
@@ -122,11 +127,13 @@ export type PresetKind<P extends PresetName> = Presets[P]["kind"];
 export type Country = "TR";
 
 /** Presets that take a `country` option. */
-export type CountryPresetName = "phone" | "iban";
+export type CountryPresetName = "phone" | "iban" | "currency" | "number";
 
 export const countryPresets: Readonly<Record<CountryPresetName, Readonly<Record<Country, Preset>>>> = Object.freeze({
   phone: { TR: phoneTR },
   iban: { TR: ibanTR },
+  currency: { TR: currencyTR },
+  number: { TR: numberTR },
 });
 
 export function isPresetName(value: unknown): value is PresetName {

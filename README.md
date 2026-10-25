@@ -73,15 +73,17 @@ export function Checkout() {
 | `cvv` | 3 digits, 4 for Amex (with `from: "card"`) | `123` |
 | `expiry` | `12/28`, past months are invalid | `1228` |
 | `tckn`, `vkn` | `10000000146` | `10000000146` |
-| `currency` | `₺1.234,56` (TRY by default, any ISO code) | `1234.56` |
-| `number` | `1.234` | `1234` |
+| `currency` | `1,234.56`; with a code `$1,234.56` (Intl) | `1234.56` |
+| `currency` + `country: "TR"` | `₺1.234,56` | `1234.56` |
+| `number` | `1,234` | `1234` |
+| `number` + `country: "TR"` | `1.234` | `1234` |
 | `date` | `01/02/2026` | `2026-02-01` |
 
 ## Schema options
 
 ```tsx
 useViraMask(form, {
-  // a national layout: phone and iban take country: "TR"
+  // Turkish layout: phone, iban, currency and number take country: "TR"
   iban: { preset: "iban", country: "TR" },
   // a preset with overrides
   birthDate: { preset: "date", date: { max: "today", minAge: 18 } },
@@ -135,7 +137,7 @@ import { createMask, definePreset, toMinorUnits } from "@virastack/mask/server";
 
 const plate = definePreset("plate", { mask: "99 a[aa] 99[99]", transform: "uppercase" });
 createMask(plate).format("34abc123"); // "34 ABC 123"
-createMask("currency").format("1234.5"); // "₺1.234,5"
+createMask({ preset: "currency", country: "TR" }).format("1234.5"); // "₺1.234,5"
 toMinorUnits("1234.56", "TRY"); // 123456
 ```
 

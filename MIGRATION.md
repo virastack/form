@@ -21,7 +21,7 @@ The form already holds the raw value. Read it with `form.watch("phone")` or `for
 | :--- | :--- |
 | `phone` (US `(999) 999-9999`) | `{ preset: "phone", country: "TR" }` for `(555) 123 45 67`, `"phone"` for E.164 (`+905551234567`). For a US layout: `{ mask: "(999) 999-9999" }` |
 | `iban` (Turkey only, value without `TR`) | `{ preset: "iban", country: "TR" }` (value includes `TR`), `"iban"` for any country |
-| `currency` (US separators, no symbol) | `currency` uses `Intl`: TRY by default (`₺1.234,56`), `currency: "USD"` or `from` for others |
+| `currency` (US separators, no symbol) | `"currency"` is the same (`1,234.56`). Turkish lira: `{ preset: "currency", country: "TR" }` (`₺1.234,56`); other symbols: `currency: "USD"` or `from` |
 | `date` (value `01022020`) | value is ISO `2020-02-01` |
 | `taxNumber` | `vkn` |
 | `numeric` | `number` |
@@ -35,7 +35,8 @@ The form already holds the raw value. Read it with `form.watch("phone")` or `for
 | `cvv` scanning the schema for a card field | `cvv: { preset: "cvv", from: "card" }` |
 | `validator: "tckn"` / `validate: true` | built into the preset; add more with `validate: (value) => true \| "my.key"` |
 | `errorMessage` | errors are keys (`tckn.invalid`); map them to messages yourself |
-| `currency: { decimalSeparator, thousandSeparator, symbol }` | `currency: { code, locale, scale }` |
+| `currency: { decimalSeparator: ",", thousandSeparator: ".", symbol: "₺" }` | `{ preset: "currency", country: "TR" }` |
+| `currency: { decimalSeparator, thousandSeparator, symbol }` (other) | `currency: { code, locale, scale }` |
 | `dateFormat: "DMY"` | `date: { format: "DD/MM/YYYY" }` |
 | `allowedChars`, `forbiddenChars` | custom tokens: `{ mask: "hhhh", tokens: { h: /[0-9a-f]/i } }` |
 | `displayPrefix` | fixed parts kept in the value: `{TR}99 ...` |

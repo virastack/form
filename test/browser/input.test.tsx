@@ -14,7 +14,7 @@ function Checkout() {
     phone: { preset: "phone", country: "TR" },
     card: "card",
     cvv: { preset: "cvv", from: "card" },
-    price: "currency",
+    price: { preset: "currency", country: "TR" },
     date: "date",
   });
   return (

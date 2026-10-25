@@ -218,16 +218,16 @@ function numberMask(
     let code: string | undefined;
     if (currency) {
       const linked = typeof ctx.from === "string" && /^[A-Za-z]{3}$/.test(ctx.from) ? ctx.from.toUpperCase() : undefined;
-      code = linked ?? currency.code ?? "TRY";
+      code = linked ?? currency.code;
     }
-    const locale = config.locale ?? (code && code !== "TRY" ? "en-US" : "tr-TR");
+    const locale = config.locale ?? (code === "TRY" ? "tr-TR" : "en-US");
     const parts = intlParts(locale, code);
     return {
       decimal: parts.decimal,
       group: parts.group,
       prefix: parts.prefix,
       suffix: parts.suffix,
-      scale: config.scale ?? (code ? parts.digits : 0),
+      scale: config.scale ?? (code ? parts.digits : currency ? 2 : 0),
       signed: config.signed ?? false,
       min: config.min,
       max: config.max,
