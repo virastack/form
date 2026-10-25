@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect, useState, type ReactNode } from "react";
-import { Controller, useForm, type UseFormReturn } from "react-hook-form";
+import { Controller, useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { maskResolver, useViraMask } from "../src";
@@ -270,6 +270,38 @@ describe("linked fields (from)", () => {
     await user.type(card, "4111111111111111");
     await waitFor(() => expect(cvv.value).toBe("123"));
     expect(api.form.getValues("cvv")).toBe("123");
+  });
+
+  it("useWatch sees the trimmed cvv after a one-step card change (select first digit, type 4)", async () => {
+    type F = { card: string; cvv: string };
+    let watched: string | undefined;
+    function Fields({ form }: { form: UseFormReturn<F> }) {
+      const { card, cvv } = useViraMask(form, { card: "card", cvv: { preset: "cvv", from: "card" } });
+      [watched] = useWatch({ control: form.control, name: ["cvv"] });
+      return (
+        <>
+          <input aria-label="card" {...card} />
+          <input aria-label="cvv" {...cvv} />
+        </>
+      );
+    }
+    const { api, user } = setup<F>({ defaultValues: { card: "", cvv: "" } }, (form) => <Fields form={form} />);
+    await user.type(screen.getByLabelText("card"), "378282246310005");
+    await user.type(screen.getByLabelText("cvv"), "3453");
+    // Record what subscribers (watch, useWatch) receive, in order.
+    const seen: string[] = [];
+    const unsubscribe = api.form.subscribe({
+      name: ["card", "cvv"],
+      formState: { values: true },
+      callback: ({ values }) => seen.push(values.cvv),
+    });
+    await user.type(screen.getByLabelText("card"), "4", { initialSelectionStart: 0, initialSelectionEnd: 1 });
+    unsubscribe();
+    // The last values a subscriber got must already have the trimmed cvv.
+    expect(seen.at(-1)).toBe("345");
+    await waitFor(() => expect(watched).toBe("345"));
+    expect(api.form.getValues("cvv")).toBe("345");
+    expect(screen.getByLabelText<HTMLInputElement>("cvv").value).toBe("345");
   });
 
   it("currency follows a select", async () => {

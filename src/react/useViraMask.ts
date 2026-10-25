@@ -185,18 +185,25 @@ export function useViraMask<
       }
     });
 
+    let active = true;
     const unsubscribe = getForm().subscribe({
       name: sources,
       formState: { values: true },
       callback: ({ name }) => {
-        for (const ctrl of controllers.values()) {
-          const from = ctrl.field.from;
-          if (!from || (name && name !== from && !name.startsWith(`${from}.`))) continue;
-          syncLinked(ctrl, getForm(), ctxOf);
-        }
+        // Wait until React Hook Form has finished dispatching this change. Updating the linked field
+        // inside the dispatch would let the rest of the event carry the old values to watch/useWatch.
+        queueMicrotask(() => {
+          if (!active) return;
+          for (const ctrl of controllers.values()) {
+            const from = ctrl.field.from;
+            if (!from || (name && name !== from && !name.startsWith(`${from}.`))) continue;
+            syncLinked(ctrl, getForm(), ctxOf);
+          }
+        });
       },
     });
     return () => {
+      active = false;
       clearTimeout(check);
       unsubscribe();
     };
