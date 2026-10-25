@@ -293,20 +293,15 @@ function createController<T extends FieldValues>(
   ctrl.handlers = {
     ref(el: HTMLInputElement | null) {
       ctrl.el = el;
-      if (!el) return undefined;
-      if (el.value !== ctrl.display) {
-        if (el.value === ctrl.initialDisplay || el.value === "") {
-          // Remounted with a stale default: show the current value.
-          setDisplay(ctrl, ctrl.display);
-        } else {
-          // Typed before hydration finished: take the text as input.
-          commit(applyEdit(el, undefined, ""));
-        }
+      // No cleanup return: React 18 warns about it, and both versions pass `null` on detach.
+      if (!el || el.value === ctrl.display) return;
+      if (el.value === ctrl.initialDisplay || el.value === "") {
+        // Remounted with a stale default: show the current value.
+        setDisplay(ctrl, ctrl.display);
+      } else {
+        // Typed before hydration finished: take the text as input.
+        commit(applyEdit(el, undefined, ""));
       }
-      // React 19 calls this instead of passing `null`.
-      return () => {
-        if (ctrl.el === el) ctrl.el = null;
-      };
     },
     onChange(event) {
       const native = event.nativeEvent as Partial<InputEvent>;
