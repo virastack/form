@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMask, definePreset, getCardType, isValidIBAN, isValidIBANTR, isValidTCKN, isValidVKN, toMinorUnits } from "../src/core";
+import { createMask, definePreset, getCardType, isValidIBAN, isValidTCKN, isValidVKN, toMinorUnits } from "../src/core";
 import type { EditInput, Mask, MaskContext } from "../src/core";
 
 /** Types `text` at the end of the current display, one character at a time. */
@@ -126,8 +126,9 @@ describe("presets", () => {
     expect(mask.validate("GB82WEST12345698765432")).toBeUndefined();
     expect(mask.validate("GB82WEST12345698765433")).toBe("iban.invalid");
     expect(isValidIBAN("DE89 3704 0044 0532 0130 00")).toBe(true);
-    expect(isValidIBANTR("TR330006100519786457841326")).toBe(true);
-    expect(isValidIBANTR("DE89370400440532013000")).toBe(false);
+    expect(isValidIBAN("TR330006100519786457841326")).toBe(true);
+    // the country code sets the length: a TR IBAN must have 26 characters
+    expect(isValidIBAN("TR33000610051978645784132")).toBe(false);
   });
 
   it("card detects Amex and checks Luhn", () => {

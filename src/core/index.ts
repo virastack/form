@@ -4,7 +4,6 @@ export {
   getCardType,
   isValidCard,
   isValidIBAN,
-  isValidIBANTR,
   isValidLuhn,
   isValidTCKN,
   isValidVKN,

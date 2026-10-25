@@ -1,5 +1,5 @@
 import type { MaskContext, MaskKind, MaskOptions, Preset } from "./types";
-import { getCardType, isValidIBAN, isValidIBANTR, isValidLuhn, isValidTCKN, isValidVKN } from "./validators";
+import { getCardType, isValidIBAN, isValidLuhn, isValidTCKN, isValidVKN } from "./validators";
 
 export type KindOfOptions<O> = O extends { mask: unknown }
   ? "pattern"
@@ -60,7 +60,7 @@ const iban = definePreset("iban", {
 /** `{ preset: "iban", country: "TR" }`: `TR` + 24 digits, `TR` kept in the value. */
 const ibanTR = definePreset("iban", {
   mask: "{TR}99 9999 9999 9999 9999 9999 99",
-  validate: (value: string) => isValidIBANTR(value),
+  validate: (value: string) => isValidIBAN(value),
   inputMode: "numeric",
   autoComplete: "off",
 });

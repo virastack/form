@@ -20,6 +20,7 @@ A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.
 - **Date**: `min`/`max` (`"today"`), `minAge`, auto-correct while typing (`4` → `04/`, month 13 rejected), formats `DD/MM/YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`, `DD.MM.YYYY`, `MM/YY`, `MM/YYYY`.
 - **`@virastack/mask/server`**: `parseMasked(schema, formData, standardSchema?)`, validators and `createMask` without `"use client"`.
 - **`maskResolver`**: keeps mask errors with Zod/Valibot resolvers or any Standard Schema.
+- **Validators**: `isValidIBAN` works for every country: the country code sets the length (TR → 26, DE → 22…), then mod-97.
 - **`createMask`, `definePreset`**: the same pure mask in the hook, on the server and in tests.
 - **`output: "masked"`**, **`onComplete`**, development warnings.
 

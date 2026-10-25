@@ -54,7 +54,7 @@ useForm({ resolver: maskResolver(masks, zodResolver(schema)) });
 
 | v1 | v2 |
 | :--- | :--- |
-| `validateTCKN`, `validateVKN`, `validateLuhn`, `validateIBAN` | `isValidTCKN`, `isValidVKN`, `isValidLuhn` / `isValidCard`, `isValidIBAN` / `isValidIBANTR` |
+| `validateTCKN`, `validateVKN`, `validateLuhn`, `validateIBAN` | `isValidTCKN`, `isValidVKN`, `isValidLuhn` / `isValidCard`, `isValidIBAN` (any country; the country code sets the length, e.g. TR → 26) |
 | `applyMask`, `unmask`, `formatCurrency`... | `createMask(spec).format()` / `.parse()` |
 | `mergeRefs` | removed; React 19 passes `ref` as a prop |
 

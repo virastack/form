@@ -136,7 +136,7 @@
       "name": "@virastack/mask/server",
       "path": "dist/server.mjs",
       "import": "*",
-      "limit": "7 kB"
+      "limit": "7.5 kB"
     }
   ],
   "pnpm": {

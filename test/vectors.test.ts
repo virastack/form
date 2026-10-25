@@ -1,7 +1,7 @@
 // Known-good identifiers from public registries, plus generated ones checked against independent implementations.
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { createMask, isValidCard, isValidIBAN, isValidIBANTR, isValidLuhn, isValidTCKN, isValidVKN } from "../src/core";
+import { createMask, isValidCard, isValidIBAN, isValidLuhn, isValidTCKN, isValidVKN } from "../src/core";
 
 /** Example IBANs published in the SWIFT IBAN registry, one per country. */
 const IBANS = [
@@ -30,6 +30,13 @@ const IBANS = [
   "VG96VPVG0000012345678901",
 ];
 
+/** Independent mod-97 check digit calculation (ISO 7064). */
+function withCheckDigits(country: string, bban: string): string {
+  const numeric = [...`${bban}${country}00`].map((c) => (/\d/.test(c) ? c : String(c.charCodeAt(0) - 55))).join("");
+  const check = 98 - Number(BigInt(numeric) % 97n);
+  return `${country}${String(check).padStart(2, "0")}${bban}`;
+}
+
 /** Test card numbers published by payment providers. */
 const CARDS = [
   "4111111111111111", "4012888888881881", "4242424242424242", "5555555555554444",
@@ -53,8 +60,19 @@ describe("IBAN registry examples", () => {
     }
   });
 
-  it("only TR IBANs pass the TR check", () => {
-    for (const iban of IBANS) expect(isValidIBANTR(iban)).toBe(iban.startsWith("TR"));
+  it("a wrong length for the country fails even with a valid checksum", () => {
+    // Recompute the check digits after adding or removing a character, so only the length is wrong.
+    for (const iban of IBANS) {
+      for (const body of [iban.slice(4) + "0", iban.slice(4, -1)]) {
+        const candidate = withCheckDigits(iban.slice(0, 2), body);
+        if (candidate.length < 15) continue;
+        expect(isValidIBAN(candidate)).toBe(false);
+      }
+    }
+  });
+
+  it("unknown countries fall back to the generic rule", () => {
+    expect(isValidIBAN(withCheckDigits("ZZ", "1234567890123"))).toBe(true);
   });
 });
 
