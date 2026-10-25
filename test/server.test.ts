@@ -5,7 +5,7 @@ import * as server from "../src/server";
 import { parseMasked } from "../src/server";
 
 const masks = {
-  phone: "phoneTR",
+  phone: { preset: "phone", country: "TR" },
   card: "card",
   cvv: { preset: "cvv", from: "card" },
   price: { preset: "currency", from: "code" },
@@ -56,7 +56,7 @@ describe("@virastack/mask/server", () => {
     const result = parseMasked(masks, { phone: "555", card: "4111 1111 1111 1112", birth: "01/02/2020" });
     expect(result.success).toBe(false);
     expect(result.errors).toEqual({
-      phone: "phoneTR.incomplete",
+      phone: "phone.incomplete",
       card: "card.invalid",
       birth: "date.minAge",
     });
@@ -68,16 +68,16 @@ describe("@virastack/mask/server", () => {
       price: z.string().transform(Number),
       code: z.enum(["TRY", "USD"]),
     });
-    const ok = await parseMasked({ phone: "phoneTR", price: { preset: "currency", from: "code" } }, {
+    const ok = await parseMasked({ phone: { preset: "phone", country: "TR" }, price: { preset: "currency", from: "code" } }, {
       phone: "(555) 123 45 67",
       price: "₺1.234,5",
       code: "TRY",
     }, schema);
     expect(ok).toEqual({ success: true, data: { phone: "5551234567", price: 1234.5, code: "TRY" } });
 
-    const bad = await parseMasked({ phone: "phoneTR" }, { phone: "555", price: "1", code: "EUR" }, schema);
+    const bad = await parseMasked({ phone: { preset: "phone", country: "TR" } }, { phone: "555", price: "1", code: "EUR" }, schema);
     expect(bad.success).toBe(false);
-    expect(bad.errors).toMatchObject({ phone: "phoneTR.incomplete", code: expect.any(String) });
+    expect(bad.errors).toMatchObject({ phone: "phone.incomplete", code: expect.any(String) });
   });
 
   it("validates with Valibot (Standard Schema)", async () => {
@@ -87,7 +87,7 @@ describe("@virastack/mask/server", () => {
   });
 
   it("masked output fields stay masked", () => {
-    const result = parseMasked({ phone: { preset: "phoneTR", output: "masked" } }, { phone: "5551234567" });
+    const result = parseMasked({ phone: { preset: "phone", country: "TR", output: "masked" } }, { phone: "5551234567" });
     expect(result.data.phone).toBe("(555) 123 45 67");
   });
 });

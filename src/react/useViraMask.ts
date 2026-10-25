@@ -93,7 +93,7 @@ const toText = (value: unknown) => (value === null || value === undefined ? "" :
  * @example
  * const form = useForm<{ phone: string; card: string; cvv: string }>();
  * const { phone, card, cvv } = useViraMask(form, {
- *   phone: "phoneTR",
+ *   phone: { preset: "phone", country: "TR" },
  *   card: "card",
  *   cvv: { preset: "cvv", from: "card" },
  * });

@@ -9,7 +9,7 @@ import { parseMasked } from "../src/server";
 function PhoneForm({ onForm }: { onForm?: (form: UseFormReturn<{ phone: string }>) => void }) {
   const form = useForm<{ phone: string }>();
   onForm?.(form);
-  const { phone } = useViraMask(form, { phone: "phoneTR" });
+  const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
   return (
     <>
       <input aria-label="phone" {...phone} />

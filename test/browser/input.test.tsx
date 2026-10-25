@@ -11,7 +11,7 @@ let form!: UseFormReturn<F>;
 function Checkout() {
   form = useForm<F>({ defaultValues: { phone: "", card: "", cvv: "", price: "", date: "" } });
   const m = useViraMask(form, {
-    phone: "phoneTR",
+    phone: { preset: "phone", country: "TR" },
     card: "card",
     cvv: { preset: "cvv", from: "card" },
     price: "currency",

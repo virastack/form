@@ -8,7 +8,7 @@ A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.
 
 - **Signature**: `useViraMask(form, schema)`. Field names, `from` and `rules` are typed from the form.
 - **Single source of truth**: the hook keeps no value state; React Hook Form holds the raw value. `rawValue` is removed.
-- **Presets**: `phone` is E.164 (Turkish layout after `+90`), `phoneTR` is `(555) 123 45 67`; `iban` works for every country, `ibanTR` keeps `TR` in the value; `currency` uses `Intl` with TRY by default; `date` stores ISO. `email`, `url`, `username`, `alpha`, `password`, `text`, `zipCode` are removed, `taxNumber` → `vkn`, `numeric` → `number`.
+- **Presets**: `phone` is E.164 (Turkish layout after `+90`), `{ preset: "phone", country: "TR" }` is `(555) 123 45 67`; `iban` works for every country, `{ preset: "iban", country: "TR" }` keeps `TR` in the value; `currency` uses `Intl` with TRY by default; `date` stores ISO. `email`, `url`, `username`, `alpha`, `password`, `text`, `zipCode` are removed, `taxNumber` → `vkn`, `numeric` → `number`.
 - **Errors** are keys (`tckn.invalid`), not messages.
 - **Peers**: React Hook Form 7.55+, Node 20+.
 

@@ -30,7 +30,7 @@ describe("useViraMask with React Hook Form", () => {
   it("shows the mask while the form keeps the raw value", async () => {
     let watched: unknown;
     function Phone({ form }: { form: UseFormReturn<{ phone: string }> }) {
-      const { phone } = useViraMask(form, { phone: "phoneTR" });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
       watched = form.watch("phone");
       return (
         <>
@@ -51,7 +51,7 @@ describe("useViraMask with React Hook Form", () => {
 
   it("renders default values masked", () => {
     function Fields({ form }: { form: UseFormReturn<{ phone: string; iban: string }> }) {
-      const { phone, iban } = useViraMask(form, { phone: "phoneTR", iban: "ibanTR" });
+      const { phone, iban } = useViraMask(form, { phone: { preset: "phone", country: "TR" }, iban: { preset: "iban", country: "TR" } });
       return (
         <>
           <input aria-label="phone" {...phone} />
@@ -69,7 +69,7 @@ describe("useViraMask with React Hook Form", () => {
 
   it("reflects reset() and setValue() on screen", async () => {
     function Phone({ form }: { form: UseFormReturn<{ phone: string }> }) {
-      const { phone } = useViraMask(form, { phone: "phoneTR" });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
       return <input aria-label="phone" {...phone} />;
     }
     const { api, user } = setup<{ phone: string }>({ defaultValues: { phone: "5001112233" } }, (form) => (
@@ -160,7 +160,7 @@ describe("useViraMask with React Hook Form", () => {
   it("disabled rule disables the input and skips the value", async () => {
     type F = { phone: string };
     function Fields({ form }: { form: UseFormReturn<F> }) {
-      const { phone } = useViraMask(form, { phone: { preset: "phoneTR", rules: { disabled: true } } });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR", rules: { disabled: true } } });
       return <input aria-label="phone" {...phone} />;
     }
     setup<F>({}, (form) => <Fields form={form} />);
@@ -170,7 +170,7 @@ describe("useViraMask with React Hook Form", () => {
   it("works next to Controller and plain register", async () => {
     type F = { phone: string; name: string; note: string };
     function Fields({ form }: { form: UseFormReturn<F> }) {
-      const { phone } = useViraMask(form, { phone: "phoneTR" });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
       return (
         <>
           <input aria-label="phone" {...phone} />
@@ -201,7 +201,7 @@ describe("useViraMask with React Hook Form", () => {
   it("output: masked writes the display text into the form", async () => {
     type F = { phone: string };
     function Fields({ form }: { form: UseFormReturn<F> }) {
-      const { phone } = useViraMask(form, { phone: { preset: "phoneTR", output: "masked" } });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR", output: "masked" } });
       return <input aria-label="phone" {...phone} />;
     }
     const { api, user } = setup<F>({}, (form) => <Fields form={form} />);
@@ -228,7 +228,7 @@ describe("useViraMask with React Hook Form", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     type F = { phone: string; card: string; date: string; price: string };
     function Fields({ form }: { form: UseFormReturn<F> }) {
-      const fields = useViraMask(form, { phone: "phoneTR", card: "card", date: "date", price: "currency" });
+      const fields = useViraMask(form, { phone: { preset: "phone", country: "TR" }, card: "card", date: "date", price: "currency" });
       return (
         <>
           {Object.entries(fields).map(([key, props]) => (
@@ -345,7 +345,7 @@ describe("linked fields (from)", () => {
 });
 
 describe("resolvers", () => {
-  const masks = { tckn: "tckn", phone: "phoneTR" } as const;
+  const masks = { tckn: "tckn", phone: { preset: "phone", country: "TR" } } as const;
   const schema = z.object({ tckn: z.string().min(1, "required"), phone: z.string() });
 
   function Fields({ form }: { form: UseFormReturn<z.input<typeof schema>> }) {
@@ -373,7 +373,7 @@ describe("resolvers", () => {
     await user.type(screen.getByLabelText("phone"), "555");
     await user.click(screen.getByText("submit"));
     expect(screen.getByTestId("tckn-error").textContent).toBe("required");
-    expect(screen.getByTestId("phone-error").textContent).toBe("phoneTR.incomplete");
+    expect(screen.getByTestId("phone-error").textContent).toBe("phone.incomplete");
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -395,7 +395,7 @@ describe("resolvers", () => {
 describe("editing details", () => {
   function Phone() {
     const form = useForm<{ phone: string }>();
-    const { phone } = useViraMask(form, { phone: "phoneTR" });
+    const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
     return <input aria-label="phone" {...phone} />;
   }
 
@@ -444,7 +444,7 @@ describe("editing details", () => {
       );
     }
     function Inner({ form }: { form: UseFormReturn<{ phone: string }> }) {
-      const { phone } = useViraMask(form, { phone: "phoneTR" });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
       return <input aria-label="phone" {...phone} />;
     }
     const user = userEvent.setup();
@@ -465,7 +465,7 @@ describe("editing details", () => {
     let form!: UseFormReturn<{ phone: string }>;
     function App() {
       form = useForm<{ phone: string }>({ defaultValues: { phone: "5551234567" } });
-      const { phone } = useViraMask(form, { phone: "phoneTR" });
+      const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
       useEffect(() => {}, []);
       return <input aria-label="phone" {...phone} />;
     }

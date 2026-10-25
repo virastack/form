@@ -17,7 +17,7 @@ describe("types", () => {
   it("infers field names from the form", () => {
     const form = useForm<{ phone: string; card: string; cvv: string; address: { zip: string } }>();
     const fields = useViraMask(form, {
-      phone: "phoneTR",
+      phone: { preset: "phone", country: "TR" },
       card: "card",
       cvv: { preset: "cvv", from: "card" },
       zip: { name: "address.zip", mask: "99999" },
@@ -34,7 +34,7 @@ describe("types", () => {
     const form = useForm<{ card: string; phone: string }>();
     const { card, phone } = useViraMask(form, {
       card: { preset: "card", onComplete: (value) => expectTypeOf(value).toEqualTypeOf<string>() },
-      phone: { preset: "phoneTR", rules: { validate: (value) => value !== "" || "required" } },
+      phone: { preset: "phone", country: "TR", rules: { validate: (value) => value !== "" || "required" } },
     });
     expectTypeOf(card).toEqualTypeOf<MaskField>();
     expectTypeOf(phone).toEqualTypeOf<MaskField>();
@@ -43,7 +43,7 @@ describe("types", () => {
   it("rejects unknown keys, unknown `from` and unknown `name`", () => {
     const form = useForm<{ phone: string; card: string }>();
     // @ts-expect-error "phon" is not a field
-    useViraMask(form, { phon: "phoneTR" });
+    useViraMask(form, { phon: { preset: "phone", country: "TR" } });
     // @ts-expect-error "crd" is not a field
     useViraMask(form, { phone: { preset: "cvv", from: "crd" } });
     // @ts-expect-error "address.zip" is not a field
@@ -55,7 +55,21 @@ describe("types", () => {
     // @ts-expect-error not a preset
     useViraMask(form, { phone: "phonee" });
     // @ts-expect-error a pattern preset has no date options
-    useViraMask(form, { phone: { preset: "phoneTR", date: { min: "today" } } });
+    useViraMask(form, { phone: { preset: "phone", country: "TR", date: { min: "today" } } });
+  });
+
+  it("country only goes on phone and iban", () => {
+    const form = useForm<{ phone: string; iban: string; card: string }>();
+    useViraMask(form, {
+      phone: { preset: "phone", country: "TR" },
+      iban: { preset: "iban", country: "TR" },
+    });
+    // @ts-expect-error card has no country layout
+    useViraMask(form, { card: { preset: "card", country: "TR" } });
+    // @ts-expect-error only TR is supported
+    useViraMask(form, { phone: { preset: "phone", country: "DE" } });
+    // @ts-expect-error custom masks take no country
+    useViraMask(form, { phone: { mask: "999", country: "TR" } });
   });
 
   it("mask and currency can't be combined", () => {
@@ -76,9 +90,9 @@ describe("types", () => {
   it("works with a Zod resolver's input/output types", () => {
     const schema = z.object({ phone: z.string(), price: z.string().transform(Number) });
     const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
-      resolver: maskResolver({ phone: "phoneTR" }, schema),
+      resolver: maskResolver({ phone: { preset: "phone", country: "TR" } }, schema),
     });
-    const { phone, price } = useViraMask(form, { phone: "phoneTR", price: "currency" });
+    const { phone, price } = useViraMask(form, { phone: { preset: "phone", country: "TR" }, price: "currency" });
     expectTypeOf(phone).toEqualTypeOf<MaskField>();
     expectTypeOf(price.onChange).toBeFunction();
   });
@@ -94,7 +108,7 @@ describe("types", () => {
 
   it("error keys and parse results", () => {
     expectTypeOf(createMask("tckn").validate("1")).toEqualTypeOf<ErrorKey | undefined>();
-    const result = parseMasked({ phone: "phoneTR", zip: { name: "address.zip", mask: "99999" } }, {});
+    const result = parseMasked({ phone: { preset: "phone", country: "TR" }, zip: { name: "address.zip", mask: "99999" } }, {});
     if (result.success) expectTypeOf(result.data.phone).toEqualTypeOf<string>();
     else expectTypeOf(result.errors).toEqualTypeOf<Record<string, string>>();
   });

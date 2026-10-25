@@ -84,7 +84,7 @@ type Exclusive<T, K extends PropertyKey> = T & { [P in Exclude<K, keyof T>]?: ne
 
 type KindKeys = "mask" | "tokens" | "transform" | "normalize" | "eager" | "number" | "currency" | "date";
 
-type Custom<T> = Exclusive<T, KindKeys> & { preset?: never };
+type Custom<T> = Exclusive<T, KindKeys> & { preset?: never; country?: never };
 
 export type PatternMaskOptions = Custom<InputOptions & PatternConfig>;
 export type NumberMaskOptions = Custom<InputOptions & { number: NumberConfig }>;

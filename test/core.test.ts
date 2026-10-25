@@ -50,7 +50,7 @@ describe("pattern engine", () => {
   });
 
   it("keeps fixed parts in the value", () => {
-    const ibanTR = createMask("ibanTR");
+    const ibanTR = createMask({ preset: "iban", country: "TR" });
     expect(ibanTR.format("330006100519786457841326")).toBe("TR33 0006 1005 1978 6457 8413 26");
     expect(ibanTR.parse("TR33 0006 1005 1978 6457 8413 26")).toBe("TR330006100519786457841326");
     expect(ibanTR.format("TR330006100519786457841326")).toBe("TR33 0006 1005 1978 6457 8413 26");
@@ -88,7 +88,7 @@ describe("pattern engine", () => {
   });
 
   it("parses a pasted, formatted value", () => {
-    const mask = createMask("phoneTR");
+    const mask = createMask({ preset: "phone", country: "TR" });
     const result = mask.edit({ previous: "", value: "+90 (555) 123 45 67", selectionStart: 19 });
     expect(result.value).toBe("5551234567");
     expect(result.display).toBe("(555) 123 45 67");
@@ -102,11 +102,11 @@ describe("pattern engine", () => {
 });
 
 describe("presets", () => {
-  it("phoneTR strips a leading 0 and country code", () => {
-    const mask = createMask("phoneTR");
+  it("phone with country TR strips a leading 0 and the country code", () => {
+    const mask = createMask({ preset: "phone", country: "TR" });
     expect(type(mask, "05551234567").value).toBe("5551234567");
     expect(mask.parse("+90 555 123 45 67")).toBe("5551234567");
-    expect(mask.validate("555123")).toBe("phoneTR.incomplete");
+    expect(mask.validate("555123")).toBe("phone.incomplete");
     expect(mask.validate("5551234567")).toBeUndefined();
   });
 
@@ -156,6 +156,12 @@ describe("presets", () => {
     expect(isValidVKN("1234567891")).toBe(false);
     expect(isValidVKN("1234567890")).toBe(true);
     expect(isValidVKN("0010010010")).toBe(true);
+  });
+
+  it("country variants keep the preset name in error keys", () => {
+    expect(createMask({ preset: "phone", country: "TR" }).name).toBe("phone");
+    expect(createMask({ preset: "iban", country: "TR" }).validate("TR330006100519786457841327")).toBe("iban.invalid");
+    expect(createMask({ preset: "iban", country: "TR" }).format("GB82WEST")).toBe("TR82");
   });
 
   it("definePreset names error keys", () => {

@@ -44,7 +44,7 @@ export function Checkout() {
   const form = useForm<{ phone: string; card: string; cvv: string }>();
 
   const { phone, card, cvv } = useViraMask(form, {
-    phone: "phoneTR",
+    phone: { preset: "phone", country: "TR" },
     card: "card",
     cvv: { preset: "cvv", from: "card" },
   });
@@ -66,9 +66,9 @@ export function Checkout() {
 | Preset | Shows | Form value |
 | :--- | :--- | :--- |
 | `phone` | `+90 (555) 123 45 67`, other countries as `+4915112345678` | `+905551234567` |
-| `phoneTR` | `(555) 123 45 67` | `5551234567` |
+| `phone` + `country: "TR"` | `(555) 123 45 67` | `5551234567` |
 | `iban` | `GB82 WEST 1234 5698 7654 32` (any country, mod-97) | `GB82WEST12345698765432` |
-| `ibanTR` | `TR33 0006 1005 1978 6457 8413 26` | `TR330006100519786457841326` |
+| `iban` + `country: "TR"` | `TR33 0006 1005 1978 6457 8413 26` | `TR330006100519786457841326` |
 | `card` | `4111 1111 1111 1111`, Amex `3782 822463 10005` (Luhn) | `4111111111111111` |
 | `cvv` | 3 digits, 4 for Amex (with `from: "card"`) | `123` |
 | `expiry` | `12/28`, past months are invalid | `1228` |
@@ -81,6 +81,8 @@ export function Checkout() {
 
 ```tsx
 useViraMask(form, {
+  // a national layout: phone and iban take country: "TR"
+  iban: { preset: "iban", country: "TR" },
   // a preset with overrides
   birthDate: { preset: "date", date: { max: "today", minAge: 18 } },
   // React Hook Form rules pass through
@@ -97,7 +99,7 @@ useViraMask(form, {
 });
 ```
 
-Errors are keys such as `tckn.invalid`, `phoneTR.incomplete` or `date.min`. Map them to messages in your own i18n layer.
+Errors are keys such as `tckn.invalid`, `phone.incomplete` or `date.min`. Map them to messages in your own i18n layer.
 
 ## Resolvers (Zod, Valibot)
 

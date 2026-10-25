@@ -18,7 +18,16 @@ import {
   type NumberFormatInfo,
 } from "./number";
 import { createPatternEngine } from "./pattern";
-import { isPresetName, kindOf, presets, type PresetKind, type PresetName } from "./presets";
+import {
+  countryPresets,
+  isPresetName,
+  kindOf,
+  presets,
+  type Country,
+  type CountryPresetName,
+  type PresetKind,
+  type PresetName,
+} from "./presets";
 import type {
   CurrencyConfig,
   DateConfig,
@@ -34,10 +43,13 @@ import type {
   Validator,
 } from "./types";
 
+/** `phone` and `iban` take a `country` for a national layout and checks. */
+type CountryOption<P extends PresetName> = P extends CountryPresetName ? { country?: Country } : { country?: never };
+
 /** A preset with some of its options replaced. */
 export type PresetWithOverrides =
-  | { [P in PresetName]: { preset: P } & OverridesOf<PresetKind<P>> }[PresetName]
-  | { [K in MaskKind]: { preset: Preset<K> } & OverridesOf<K> }[MaskKind];
+  | { [P in PresetName]: { preset: P } & OverridesOf<PresetKind<P>> & CountryOption<P> }[PresetName]
+  | { [K in MaskKind]: { preset: Preset<K> } & OverridesOf<K> & { country?: never } }[MaskKind];
 
 /** Everything `createMask` accepts: a preset name, a preset, preset + overrides, or custom options. */
 export type MaskSpec = PresetName | Preset | PresetWithOverrides | MaskOptions;
@@ -65,13 +77,18 @@ function resolveSpec(spec: MaskSpec): { name: string; options: MaskOptions; vali
     return { name: spec, options: { mask: passthrough }, validators: [] };
   }
   if ("preset" in spec && spec.preset !== undefined) {
-    const preset: Preset | undefined = typeof spec.preset === "string" ? presets[spec.preset] : spec.preset;
+    let preset: Preset | undefined = typeof spec.preset === "string" ? presets[spec.preset] : spec.preset;
     if (!preset) {
       warn(`Unknown preset "${String(spec.preset)}". The field is left unmasked.`);
       return { name: String(spec.preset), options: { mask: passthrough }, validators: [] };
     }
+    const { preset: _preset, validate, country, ...overrides } = spec;
+    if (country !== undefined) {
+      const variant = countryPresets[preset.name as CountryPresetName]?.[country];
+      if (variant) preset = variant;
+      else warn(`"${preset.name}" has no "${String(country)}" layout. The global one is used.`);
+    }
     const base = fromPreset(preset);
-    const { preset: _preset, validate, ...overrides } = spec;
     const merged = mergeOptions(base.options, overrides);
     return { name: base.name, options: merged, validators: validate ? [...base.validators, validate] : base.validators };
   }

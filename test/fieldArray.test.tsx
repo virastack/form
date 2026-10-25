@@ -7,7 +7,7 @@ import { useViraMask } from "../src";
 type F = { phones: { number: string }[] };
 
 function MaskedRow({ form, index, onRemove }: { form: UseFormReturn<F>; index: number; onRemove: () => void }) {
-  const { number } = useViraMask(form, { number: { name: `phones.${index}.number`, preset: "phoneTR" } });
+  const { number } = useViraMask(form, { number: { name: `phones.${index}.number`, preset: "phone", country: "TR" } });
   return (
     <div>
       <input aria-label={`phone ${index}`} {...number} />
@@ -97,7 +97,7 @@ describe("useFieldArray", () => {
     await user.click(screen.getByText("add"));
     await user.type(phone(1), "532");
     await user.click(screen.getByText("submit"));
-    expect(api.form.getFieldState("phones.1.number").error?.message).toBe("phoneTR.incomplete");
+    expect(api.form.getFieldState("phones.1.number").error?.message).toBe("phone.incomplete");
     expect(api.form.getFieldState("phones.0.number").error).toBeUndefined();
   });
 

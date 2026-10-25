@@ -1,4 +1,4 @@
-import type { MaskKind, MaskOptions, Preset } from "./types";
+import type { MaskContext, MaskKind, MaskOptions, Preset } from "./types";
 import { getCardType, isValidIBAN, isValidIBANTR, isValidLuhn, isValidTCKN, isValidVKN } from "./validators";
 
 export type KindOfOptions<O> = O extends { mask: unknown }
@@ -36,7 +36,8 @@ const phone = definePreset("phone", {
   autoComplete: "tel",
 });
 
-const phoneTR = definePreset("phoneTR", {
+/** `{ preset: "phone", country: "TR" }`: national Turkish layout, 10-digit value. */
+const phoneTR = definePreset("phone", {
   mask: "(999) 999 99 99",
   normalize: (value: string) => {
     let d = digits(value);
@@ -56,7 +57,8 @@ const iban = definePreset("iban", {
   autoComplete: "off",
 });
 
-const ibanTR = definePreset("ibanTR", {
+/** `{ preset: "iban", country: "TR" }`: `TR` + 24 digits, `TR` kept in the value. */
+const ibanTR = definePreset("iban", {
   mask: "{TR}99 9999 9999 9999 9999 9999 99",
   validate: (value: string) => isValidIBANTR(value),
   inputMode: "numeric",
@@ -71,7 +73,7 @@ const card = definePreset("card", {
 });
 
 const cvv = definePreset("cvv", {
-  mask: (_value: string, ctx) => (getCardType(String(ctx.from ?? "")) === "amex" ? "9999" : "999"),
+  mask: (_value: string, ctx: MaskContext) => (getCardType(String(ctx.from ?? "")) === "amex" ? "9999" : "999"),
   inputMode: "numeric",
   autoComplete: "cc-csc",
 });
@@ -101,9 +103,7 @@ const date = definePreset("date", { date: { format: "DD/MM/YYYY" } });
 
 export const presets = Object.freeze({
   phone,
-  phoneTR,
   iban,
-  ibanTR,
   card,
   cvv,
   expiry,
@@ -117,6 +117,17 @@ export const presets = Object.freeze({
 export type Presets = typeof presets;
 export type PresetName = keyof Presets;
 export type PresetKind<P extends PresetName> = Presets[P]["kind"];
+
+/** Countries with their own layout for `phone` and `iban`. */
+export type Country = "TR";
+
+/** Presets that take a `country` option. */
+export type CountryPresetName = "phone" | "iban";
+
+export const countryPresets: Readonly<Record<CountryPresetName, Readonly<Record<Country, Preset>>>> = Object.freeze({
+  phone: { TR: phoneTR },
+  iban: { TR: ibanTR },
+});
 
 export function isPresetName(value: unknown): value is PresetName {
   return typeof value === "string" && Object.prototype.hasOwnProperty.call(presets, value);

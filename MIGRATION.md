@@ -6,7 +6,7 @@ v2 is a rewrite. The hook signature, preset list and some values changed.
 
 ```diff
 - const { phone } = useViraMask({ form, schema: { phone: "phone" } });
-+ const { phone } = useViraMask(form, { phone: "phoneTR" });
++ const { phone } = useViraMask(form, { phone: { preset: "phone", country: "TR" } });
 ```
 
 Schema keys must be field names of your form (or set `name`). Typos are type errors.
@@ -19,8 +19,8 @@ The form already holds the raw value. Read it with `form.watch("phone")` or `for
 
 | v1 | v2 |
 | :--- | :--- |
-| `phone` (US `(999) 999-9999`) | `phoneTR` for `(555) 123 45 67`, `phone` for E.164 (`+905551234567`). For a US layout: `{ mask: "(999) 999-9999" }` |
-| `iban` (Turkey only, value without `TR`) | `ibanTR` (value includes `TR`), `iban` for any country |
+| `phone` (US `(999) 999-9999`) | `{ preset: "phone", country: "TR" }` for `(555) 123 45 67`, `"phone"` for E.164 (`+905551234567`). For a US layout: `{ mask: "(999) 999-9999" }` |
+| `iban` (Turkey only, value without `TR`) | `{ preset: "iban", country: "TR" }` (value includes `TR`), `"iban"` for any country |
 | `currency` (US separators, no symbol) | `currency` uses `Intl`: TRY by default (`₺1.234,56`), `currency: "USD"` or `from` for others |
 | `date` (value `01022020`) | value is ISO `2020-02-01` |
 | `taxNumber` | `vkn` |
