@@ -1,6 +1,11 @@
-export * from "./types";
-export * from "./hooks/useViraMask";
-export * from "./core/logic";
-export { applyMask, cleanValue, formatCurrency, unformatCurrency, unmask, stripMask, getCardType } from "./core/engine";
-export * from "./core/presets";
-export { mergeRefs } from "./utils/ref";
+export * from "./core";
+export {
+  useViraMask,
+  type ViraMaskEntry,
+  type MaskField,
+  type MaskFields,
+  type ViraFieldConfig,
+  type ViraMaskRules,
+  type ViraMaskSchema,
+} from "./react/useViraMask";
+export { maskResolver } from "./react/resolver";

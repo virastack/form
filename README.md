@@ -8,7 +8,7 @@
   </picture>
 </a>
 
-*Zero-dependency input masking for React Hook Form: phone, credit card, currency and more*
+*Zero-config input masks for React Hook Form, with Turkish validators and server support*
 
 [![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23615fff)](https://virastack.com/mask/)
 [![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
@@ -24,10 +24,11 @@
 
 ## Features
 
-- **Lightweight:** ~5KB minified.
-- **React Hook Form:** Works with your form state, no extra syncing.
-- **Type-safe:** Typed schema, options and presets.
-- **Presets:** Card, phone, currency, IBAN and more.
+- **Built for React Hook Form:** The form keeps the raw value (`5551234567`); the input shows the mask. `register` rules, `reset`, `setValue`, `watch`, `Controller` and resolvers keep working.
+- **Type-safe:** Field names, `from` links and rules are checked against your form type. No `any`.
+- **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, TRY with kuruş.
+- **Server support:** `@virastack/mask/server` parses and validates the same schema in Server Actions.
+- **Zero dependencies:** ~8 KB min+brotli for everything; less once tree-shaken.
 
 ## Quick Start
 
@@ -36,37 +37,107 @@ npm install @virastack/mask
 ```
 
 ```tsx
-import { useForm } from 'react-hook-form';
-import { useViraMask } from '@virastack/mask';
+import { useForm } from "react-hook-form";
+import { useViraMask } from "@virastack/mask";
 
-function App() {
-  const form = useForm();
+export function Checkout() {
+  const form = useForm<{ phone: string; card: string; cvv: string }>();
 
-  const { phone } = useViraMask({
-    form,
-    schema: {
-      phone: 'phone'
-    }
+  const { phone, card, cvv } = useViraMask(form, {
+    phone: "phoneTR",
+    card: "card",
+    cvv: { preset: "cvv", from: "card" },
   });
 
   return (
-    <form>
-      <input {...phone} placeholder="(555) 555-5555" />
+    <form onSubmit={form.handleSubmit(console.log)}>
+      <input {...phone} placeholder="(555) 123 45 67" />
+      <input {...card} />
+      <input {...cvv} />
     </form>
   );
 }
 ```
 
-## API
+`form.watch("phone")` returns `5551234567`, not `(555) 123 45 67`. Use `output: "masked"` if your backend wants the masked text.
 
-`useViraMask({ form, schema })` returns one field object per schema key. Spread it on an `<input>`.
+## Presets
 
-| Schema value | Description |
-| :--- | :--- |
-| Preset name | `card`, `expiry`, `cvv`, `phone`, `currency`, `iban`, `date`, `zipCode`, `numeric` and more |
-| Options object | `mask`, `transform`, `allowedChars`, `currency`, `validator`, `preset` and more |
+| Preset | Shows | Form value |
+| :--- | :--- | :--- |
+| `phone` | `+90 (555) 123 45 67`, other countries as `+4915112345678` | `+905551234567` |
+| `phoneTR` | `(555) 123 45 67` | `5551234567` |
+| `iban` | `GB82 WEST 1234 5698 7654 32` (any country, mod-97) | `GB82WEST12345698765432` |
+| `ibanTR` | `TR33 0006 1005 1978 6457 8413 26` | `TR330006100519786457841326` |
+| `card` | `4111 1111 1111 1111`, Amex `3782 822463 10005` (Luhn) | `4111111111111111` |
+| `cvv` | 3 digits, 4 for Amex (with `from: "card"`) | `123` |
+| `expiry` | `12/28`, past months are invalid | `1228` |
+| `tckn`, `vkn` | `10000000146` | `10000000146` |
+| `currency` | `₺1.234,56` (TRY by default, any ISO code) | `1234.56` |
+| `number` | `1.234` | `1234` |
+| `date` | `01/02/2026` | `2026-02-01` |
 
-Each field also exposes `rawValue`, the unmasked value.
+## Schema options
+
+```tsx
+useViraMask(form, {
+  // a preset with overrides
+  birthDate: { preset: "date", date: { max: "today", minAge: 18 } },
+  // React Hook Form rules pass through
+  tckn: { preset: "tckn", rules: { required: "tckn.required" } },
+  // another form field drives the mask
+  price: { preset: "currency", from: "currencyCode" },
+  endDate: { preset: "date", from: "startDate" },
+  // nested field
+  zip: { name: "address.zip", mask: "99999" },
+  // custom pattern: 9 digit, a letter, * letter or digit, [optional], {kept in value}, \ escape
+  plate: { mask: "99 a[aa] 99[99]", transform: "uppercase" },
+  // fires when the mask is full
+  card: { preset: "card", onComplete: () => form.setFocus("expiry") },
+});
+```
+
+Errors are keys such as `tckn.invalid`, `phoneTR.incomplete` or `date.min`. Map them to messages in your own i18n layer.
+
+## Resolvers (Zod, Valibot)
+
+React Hook Form skips `register` validation when a resolver is set. Wrap it so mask errors still show up:
+
+```tsx
+import { maskResolver } from "@virastack/mask";
+
+useForm({ resolver: maskResolver(masks, zodResolver(schema)) });
+// or pass any Standard Schema directly
+useForm({ resolver: maskResolver(masks, schema) });
+```
+
+## Server
+
+```ts
+"use server";
+import { parseMasked } from "@virastack/mask/server";
+
+export async function checkout(formData: FormData) {
+  const result = await parseMasked(masks, formData, schema); // schema is optional
+  if (!result.success) return { errors: result.errors };
+  // result.data has raw values: { phone: "5551234567", ... }
+}
+```
+
+The root import has `"use client"`. In Server Components and Actions, import from `@virastack/mask/server`.
+
+## Core
+
+```ts
+import { createMask, definePreset, toMinorUnits } from "@virastack/mask/server";
+
+const plate = definePreset("plate", { mask: "99 a[aa] 99[99]", transform: "uppercase" });
+createMask(plate).format("34abc123"); // "34 ABC 123"
+createMask("currency").format("1234.5"); // "₺1.234,5"
+toMinorUnits("1234.56", "TRY"); // 123456
+```
+
+Upgrading from v1? See [MIGRATION.md](MIGRATION.md).
 
 ## Ecosystem
 
