@@ -237,6 +237,7 @@ export function createPatternEngine(config: PatternConfig): PatternEngine {
     let before: string;
     let inserted: string;
     let after: string;
+    let deleted = false;
 
     if (prev.display !== previous) {
       // The DOM changed behind our back (autofill, programmatic write): parse it from scratch.
@@ -249,6 +250,7 @@ export function createPatternEngine(config: PatternConfig): PatternEngine {
       after = acceptable(after, pool);
     } else {
       const change = diffText(previous, next, selectionStart);
+      deleted = change.removedEnd > change.start;
       const countBefore = (pos: number) => {
         let count = 0;
         while (count + 1 < prev.marks.length && prev.marks[count + 1] <= pos) count++;
@@ -278,7 +280,13 @@ export function createPatternEngine(config: PatternConfig): PatternEngine {
       inserted = acceptable(change.inserted, candidates(ctx, prev.value + change.inserted));
     }
 
-    const result = run(before + inserted + after, ctx);
+    let result = run(before + inserted + after, ctx);
+    if (deleted && inserted === "" && result.value === prev.value && after !== "") {
+      // The deletion was undone by normalize (date padding: deleting "0" of "08" brings it back).
+      // Remove the character that brought it back as well.
+      after = after.slice(1);
+      result = run(before + after, ctx);
+    }
     const head = run(before + inserted, ctx);
     const count = Math.min(head.value.length, result.value.length);
     const cursor = count >= result.value.length ? result.display.length : result.marks[count];

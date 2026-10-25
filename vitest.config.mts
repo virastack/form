@@ -3,6 +3,12 @@ import { playwright } from "@vitest/browser-playwright";
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: "v8",
+      include: ["src"],
+      // Keep a little headroom under the current numbers so a drop fails CI.
+      thresholds: { statements: 92, branches: 85, functions: 92, lines: 94 },
+    },
     projects: [
       {
         test: {
@@ -21,7 +27,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [{ browser: "chromium" }],
+            instances: [{ browser: "chromium" }, { browser: "firefox" }, { browser: "webkit" }],
           },
         },
       },

@@ -289,6 +289,12 @@ describe("date", () => {
     expect(mask.validate("13")).toBe("expiry.incomplete");
   });
 
+  it("deleting an auto-inserted 0 does not get stuck (found by property tests)", () => {
+    const mask = createMask("date");
+    const result = mask.edit({ previous: "08/", value: "8/", selectionStart: 0, inputType: "deleteContentBackward" });
+    expect(result.value).toBe("");
+  });
+
   it("backspace after an eager separator removes the digit", () => {
     const mask = createMask("date");
     const result = backspace(mask, "04/");
