@@ -200,6 +200,14 @@ describe("number and currency", () => {
     expect(type(mask, "1234,56").value).toBe("1234.56");
   });
 
+  it("a typed comma is the decimal in en-US too", () => {
+    expect(type(createMask("currency"), "1234,56").value).toBe("1234.56");
+    expect(type(createMask("currency"), "1234,56").display).toBe("1,234.56");
+    expect(type(createMask({ number: { scale: 2 } }), "12,5").value).toBe("12.5");
+    // no decimals allowed: the comma is ignored
+    expect(type(createMask("number"), "12,5").value).toBe("125");
+  });
+
   it("accepts a typed dot as the decimal in tr-TR", () => {
     const mask = createMask({ preset: "currency", country: "TR" });
     expect(type(mask, "1234.5").value).toBe("1234.5");

@@ -179,8 +179,12 @@ export function editNumber(input: EditInput, info: NumberFormatInfo): EditResult
     head = readTyped(next.slice(0, change.start), info, -1) + pasted;
     tail = readTyped(next.slice(insertedEnd), info, -1);
   } else {
+    // Group separators are inserted by the mask, so a typed "," or "." always means the decimal
+    // (typing "1234,56" in an en-US field must not become 123456).
     const typedDecimalAt =
-      change.inserted.length === 1 && (change.inserted === "." || change.inserted === info.decimal) && info.scale > 0
+      change.inserted.length === 1 &&
+      (change.inserted === "." || change.inserted === "," || change.inserted === info.decimal) &&
+      info.scale > 0
         ? change.start
         : -1;
     const split = Math.min(caret, next.length);
