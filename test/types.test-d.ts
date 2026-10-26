@@ -1,6 +1,7 @@
 import type React from "react";
 import { describe, expectTypeOf, it } from "vitest";
 import { getInputAriaAttributes, mergeProps, useViraPassword, type UseViraPasswordResult } from "../src";
+import { validatePassword, type PasswordValidation } from "../src/server";
 import { definePolicy, evaluate, type PasswordIssue, type Policy, type StrengthResult } from "../src/strength";
 
 describe("types", () => {
@@ -60,5 +61,14 @@ describe("types", () => {
     const merged = mergeProps(pw.inputProps, register);
     expectTypeOf(merged.name).toEqualTypeOf<string>();
     expectTypeOf(merged.type).toEqualTypeOf<React.HTMLInputTypeAttribute | undefined>();
+  });
+
+  it("server types", () => {
+    const form = new FormData();
+    const result = validatePassword(form.get("password"), definePolicy(), { forbidden: [form.get("email")], confirm: form.get("confirm") });
+    expectTypeOf(result).toEqualTypeOf<PasswordValidation>();
+    expectTypeOf(result.password).toEqualTypeOf<string>();
+    // @ts-expect-error policy is required
+    validatePassword("x");
   });
 });

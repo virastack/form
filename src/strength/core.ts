@@ -147,7 +147,9 @@ const evaluateWith = (policy: Policy, input: unknown, options: EvaluateOptions =
   if (checks.digit === false) issues.push("password.noDigit");
   if (checks.symbol === false) issues.push("password.noSymbol");
 
-  if (chars.length >= 4) {
+  // Far past the limit the answer is "too long" anyway; skip the pattern checks on huge input.
+  const huge = password.length > policy.maxLength * 4;
+  if (chars.length >= 4 && !huge) {
     if (policy.blockCommon) {
       const list = (common ??= new Set(COMMON.split(" ")));
       checks.notCommon = !commonCores(folded).some((core) => list.has(core));
@@ -155,7 +157,7 @@ const evaluateWith = (policy: Policy, input: unknown, options: EvaluateOptions =
     checks.notBlocked = !containsAny(folded, policy.blocklist);
     if (policy.blockRepetitive) checks.notRepetitive = !isRepetitive(Array.from(folded), folded);
   }
-  if (chars.length > 0 && options.forbidden) {
+  if (chars.length > 0 && options.forbidden && !huge) {
     checks.notPersonal = !containsAny(folded, personalTokens(options.forbidden, policy.minTokenLength));
   }
 
