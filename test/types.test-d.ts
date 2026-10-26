@@ -1,6 +1,7 @@
 import type React from "react";
 import { describe, expectTypeOf, it } from "vitest";
 import { getInputAriaAttributes, mergeProps, useViraPassword, type UseViraPasswordResult } from "../src";
+import { definePolicy, evaluate, type PasswordIssue, type Policy, type StrengthResult } from "../src/strength";
 
 describe("types", () => {
   it("returns no any", () => {
@@ -24,5 +25,36 @@ describe("types", () => {
   it("helpers are typed", () => {
     expectTypeOf(getInputAriaAttributes(true)).toEqualTypeOf<{ "aria-invalid"?: boolean; "aria-describedby"?: string }>();
     expectTypeOf(mergeProps({ id: "a" }, { id: "b" })).toEqualTypeOf<{ id: string }>();
+  });
+
+  it("strength types", () => {
+    const policy = definePolicy({ preset: "legacy", require: { symbol: false } });
+    expectTypeOf(policy).toEqualTypeOf<Policy>();
+    const result = evaluate("x", policy, { forbidden: ["a@b.co", null] });
+    expectTypeOf(result).toEqualTypeOf<StrengthResult>();
+    expectTypeOf(result.score).toEqualTypeOf<0 | 1 | 2 | 3 | 4>();
+    expectTypeOf(result.level).toEqualTypeOf<"weak" | "fair" | "good" | "strong">();
+    expectTypeOf(result.issues).toEqualTypeOf<PasswordIssue[]>();
+    expectTypeOf<"password.tooShort">().toExtend<PasswordIssue>();
+    // @ts-expect-error unknown preset
+    definePolicy({ preset: "strict" });
+    // @ts-expect-error policy is required
+    evaluate("x");
+  });
+
+  it("hook strength fields", () => {
+    const pw = useViraPassword({ policy: definePolicy(), forbidden: ["a"], value: "x" });
+    expectTypeOf(pw.strength).toEqualTypeOf<StrengthResult | null>();
+    expectTypeOf(pw.issues).toEqualTypeOf<PasswordIssue[]>();
+    expectTypeOf(pw.rule.validate).returns.toEqualTypeOf<true | PasswordIssue>();
+    expectTypeOf(pw.strengthProps.role).toEqualTypeOf<"status">();
+  });
+
+  it("mergeProps combines two prop types", () => {
+    const pw = useViraPassword();
+    const register = { name: "password", onChange: async (_: unknown) => true, ref: (_: HTMLInputElement | null) => {} };
+    const merged = mergeProps(pw.inputProps, register);
+    expectTypeOf(merged.name).toEqualTypeOf<string>();
+    expectTypeOf(merged.type).toEqualTypeOf<React.HTMLInputTypeAttribute | undefined>();
   });
 });

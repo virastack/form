@@ -2,6 +2,7 @@ import React, { useState, useId, useCallback, useEffect, useRef, ReactNode } fro
 import { flushSync } from 'react-dom';
 import { EyeIcon, EyeOffIcon } from '../icons';
 import { getInputType, getButtonAriaAttributes, getInputAriaAttributes } from '../core/logic';
+import type { PasswordIssue, Policy, StrengthResult } from '../strength/types';
 
 export type ViraPasswordInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   ref?: React.Ref<HTMLInputElement>;
@@ -38,9 +39,25 @@ export interface UseViraPasswordOptions {
 
   /**
    * `autoComplete` for the input. `false` leaves the attribute out.
-   * @default "current-password"
+   * @default "new-password" with `policy` or `matchWith`, otherwise "current-password"
    */
   autoComplete?: string | false;
+
+  /**
+   * A policy from `definePolicy()` in `@virastack/password/strength`. Enables `strength` and `issues`.
+   */
+  policy?: Policy;
+
+  /**
+   * Values the password must not contain, e.g. the user's email and name.
+   */
+  forbidden?: readonly unknown[];
+
+  /**
+   * The current value, e.g. `watch("password")`. Without it the hook follows typing in the input,
+   * which misses `reset(values)` and `setValue()` from a form library.
+   */
+  value?: string;
 
   /**
    * Custom icons for show/hide states.
@@ -86,6 +103,25 @@ export interface UseViraPasswordResult {
   capsLock: boolean;
   toggle: () => void;
   setVisible: (visible: boolean) => void;
+  /** Result of the policy for the current value; `null` without a policy. */
+  strength: StrengthResult | null;
+  /** Spread on the element that shows the strength, so screen readers announce it. */
+  strengthProps: ViraPasswordStrengthProps;
+  /** Error keys for the current value. */
+  issues: PasswordIssue[];
+  /** A validation rule for React Hook Form: `register("password", pw.rule)`. Returns the first error key. */
+  rule: ViraPasswordRule;
+}
+
+export interface ViraPasswordStrengthProps {
+  id: string;
+  role: 'status';
+  'aria-live': 'polite';
+  'aria-atomic': true;
+}
+
+export interface ViraPasswordRule {
+  validate: (value: unknown) => true | PasswordIssue;
 }
 
 type Handler = (...args: unknown[]) => unknown;
@@ -112,11 +148,12 @@ const composeRefs = <T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallbac
 };
 
 /**
- * A utility to merge event handlers, class names and refs.
+ * A utility to merge event handlers, class names, `aria-describedby` and refs.
+ * Later props win; handlers run in order.
  */
-const mergeProps = <T extends object>(
-  ...args: (T | undefined)[]
-): T => {
+function mergeProps<T extends object>(...args: (T | undefined)[]): T;
+function mergeProps<A extends object, B extends object>(a: A | undefined, b: B | undefined): Omit<A, keyof B> & B;
+function mergeProps(...args: (object | undefined)[]): object {
   const result: Record<string, unknown> = {};
 
   for (const props of args) {
@@ -134,7 +171,7 @@ const mergeProps = <T extends object>(
           (existing as Handler)(...args);
           (val as Handler)(...args);
         };
-      } else if (key === 'className' && typeof val === 'string' && typeof existing === 'string') {
+      } else if ((key === 'className' || key === 'aria-describedby') && typeof val === 'string' && typeof existing === 'string') {
         result[key] = [existing, val].filter(Boolean).join(' ');
       } else if (key === 'ref' && existing && val) {
         result[key] = composeRefs(existing as React.Ref<unknown>, val as React.Ref<unknown>);
@@ -144,8 +181,8 @@ const mergeProps = <T extends object>(
     }
   }
 
-  return result as T;
-};
+  return result;
+}
 
 export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPasswordResult => {
   const {
@@ -154,7 +191,10 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     onVisibleChange,
     hideOnSubmit = true,
     hideOnBlur = false,
-    autoComplete = 'current-password',
+    autoComplete,
+    policy,
+    forbidden,
+    value: providedValue,
     icons,
     disabled = false,
     readOnly = false,
@@ -165,6 +205,13 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
 
   const [uncontrolledVisible, setUncontrolledVisible] = useState(defaultVisible);
   const [capsLock, setCapsLock] = useState(false);
+  const userValue = userInputProps?.value;
+  const tracksValue = policy !== undefined && providedValue === undefined && typeof userValue !== 'string';
+  const [typed, setTyped] = useState(() => {
+    const initial = userInputProps?.defaultValue;
+    return typeof initial === 'string' ? initial : '';
+  });
+  const value = providedValue ?? (typeof userValue === 'string' ? userValue : typed);
   const isVisible = controlledVisible ?? uncontrolledVisible;
   const generatedId = useId();
   const inputId = providedId || `virapassword-input-${generatedId}`;
@@ -175,8 +222,8 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   }, []);
 
   // Read from event handlers and listeners without re-subscribing on every render.
-  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange });
-  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange };
+  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden });
+  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden };
 
   // Set between a pointer press on the toggle and its click.
   const pointerPress = useRef<{ start: number | null; end: number | null } | null>(null);
@@ -228,6 +275,17 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   }, [hideOnSubmit, getInput, hide]);
 
   useEffect(() => {
+    if (!tracksValue) return;
+    // A reset changes the value without an input event; read it once the browser has applied it.
+    const onReset = (event: Event) => {
+      const input = getInput();
+      if (input?.form && event.target === input.form) setTimeout(() => setTyped(input.value));
+    };
+    document.addEventListener('reset', onReset);
+    return () => document.removeEventListener('reset', onReset);
+  }, [tracksValue, getInput]);
+
+  useEffect(() => {
     if (!hideOnBlur) return;
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') hide();
@@ -247,6 +305,21 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     setCapsLock(event.getModifierState?.('CapsLock') ?? false);
   };
 
+  const strength = policy ? policy.evaluate(value, { forbidden }) : null;
+  const issues = strength ? strength.issues : [];
+  const strengthId = `${inputId}-strength`;
+
+  // Stable, and always checks the latest policy, so it can go straight into register().
+  const [rule] = useState<ViraPasswordRule>(() => ({
+    validate: (input) => {
+      const { policy: currentPolicy, forbidden: currentForbidden } = latest.current;
+      const text = typeof input === 'string' ? input : '';
+      const result = currentPolicy?.evaluate(text, { forbidden: currentForbidden });
+      if (result && !result.valid) return result.issues[0];
+      return true;
+    },
+  }));
+
   const showIcon = icons?.show ?? React.createElement(EyeIcon);
   const hideIcon = icons?.hide ?? React.createElement(EyeOffIcon);
 
@@ -256,18 +329,19 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     type: getInputType(isVisible),
     disabled,
     readOnly,
-    ...(autoComplete === false ? {} : { autoComplete }),
+    ...(autoComplete === false ? {} : { autoComplete: autoComplete ?? (policy ? 'new-password' : 'current-password') }),
     spellCheck: false,
     autoCorrect: 'off',
     autoCapitalize: 'off',
     ref: setInputRef,
+    ...(tracksValue ? { onChange: (event: React.ChangeEvent<HTMLInputElement>) => setTyped(event.target.value) } : {}),
     onKeyDown: onCapsLock,
     onKeyUp: onCapsLock,
     onBlur: (event) => {
       setCapsLock(false);
       onFieldBlur(event);
     },
-    ...getInputAriaAttributes(),
+    ...getInputAriaAttributes(undefined, policy ? strengthId : undefined),
   };
 
   // Base props for the button
@@ -314,6 +388,10 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     capsLock,
     toggle,
     setVisible,
+    strength,
+    strengthProps: { id: strengthId, role: 'status', 'aria-live': 'polite', 'aria-atomic': true },
+    issues,
+    rule,
   };
 };
 

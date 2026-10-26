@@ -31,6 +31,16 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./strength": {
+      "import": {
+        "types": "./dist/strength.d.mts",
+        "default": "./dist/strength.mjs"
+      },
+      "require": {
+        "types": "./dist/strength.d.cts",
+        "default": "./dist/strength.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -75,6 +85,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
+    "@hookform/resolvers": "^6.0.0",
     "@size-limit/preset-small-lib": "^14.3.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -85,29 +96,48 @@
     "@vitest/browser-playwright": "5.0.5",
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^10.13.0",
+    "fast-check": "^4.10.2",
     "jsdom": "^30.1.3",
     "playwright": "^1.64.1",
     "publint": "^0.3.25",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-hook-form": "^7.91.0",
     "size-limit": "^14.3.0",
     "tsup": "^9.0.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.0",
     "vite": "^8.3.5",
     "vitest": "^5.0.5",
-    "vitest-browser-react": "^2.3.0"
+    "vitest-browser-react": "^2.3.0",
+    "zod": "^4.6.7"
   },
   "size-limit": [
     {
       "name": "@virastack/password",
       "path": "dist/index.mjs",
       "import": "*",
-      "limit": "2 kB",
+      "limit": "2.5 kB",
       "ignore": [
         "react",
         "react-dom"
       ]
+    },
+    {
+      "name": "@virastack/password (toggle only)",
+      "path": "dist/index.mjs",
+      "import": "{ useViraPassword }",
+      "limit": "2.5 kB",
+      "ignore": [
+        "react",
+        "react-dom"
+      ]
+    },
+    {
+      "name": "@virastack/password/strength",
+      "path": "dist/strength.mjs",
+      "import": "*",
+      "limit": "3 kB"
     }
   ],
   "pnpm": {
