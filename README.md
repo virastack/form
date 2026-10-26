@@ -143,7 +143,8 @@ export async function signup(formData: FormData) {
     confirm: formData.get("confirm"),
   });
   if (!result.valid) return { errors: result.issues };
-  // hash result.password (NFKC-normalized)
+  // hash result.password (NFKC-normalized), then create the user
+  return { ok: true };
 }
 ```
 
