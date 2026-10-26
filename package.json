@@ -1,6 +1,6 @@
 {
   "name": "@virastack/mask",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.1",
   "description": "Zero-config input masks for React Hook Form, with Turkish validators and server support",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
