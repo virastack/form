@@ -9,13 +9,15 @@
 - **Hook**: `policy`, `forbidden`, `value`, `matchWith`, `visible`, `onVisibleChange`, `hideOnSubmit`, `hideOnBlur` and `autoComplete` options; `strength`, `strengthProps`, `matches`, `issues`, `rule` and `capsLock` in the result.
 - **Hide on submit**: the password is hidden when its form is submitted or reset, so password managers see a password field. Turn off with `hideOnSubmit: false`.
 - **Focus**: a mouse or touch press on the toggle returns focus and the caret to the input; a keyboard press keeps focus on the button.
-- **`composeRefs`** helper. `inputProps` now carries a `ref`.
+- **`composeRefs`** helper.
 - **Leaked passwords**: Have I Been Pwned range API with k-anonymity and padding; never throws.
 
 ### Changed
 
 - The input gets `autoComplete="current-password"` (`new-password` with `policy` or `matchWith`), `spellCheck={false}`, `autoCorrect="off"` and `autoCapitalize="off"` by default. Override them through `inputProps`, or pass `autoComplete: false`.
 - `mergeProps` composes `ref`s and joins `aria-describedby`; it accepts two different prop types.
+- `inputProps` still holds attributes only (no ref, no handlers), so it can be spread before or after `register()` or a ViraStack Mask field. Caps Lock, blur and typing are read with native listeners.
+- `inputProps.id` now also drives `aria-controls`; in 1.0 the button pointed at the hook's id even when `inputProps.id` replaced it.
 - `getInputAriaAttributes` returns a typed object instead of `Record<string, any>`.
 - Package: `.mjs`/`.cjs` with `.d.mts`/`.d.cts` types (checked with attw and publint). Deep imports into `dist` were never part of the API and the file names changed.
 

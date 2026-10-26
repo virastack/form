@@ -70,4 +70,20 @@ describe.skipIf(!process.env.VIRASTACK_MASK)("with @virastack/mask v2", () => {
     expect(input("Password").value).toBe("");
     expect(screen.getByTestId("matches")).toHaveTextContent("null");
   });
+
+  it("a masked PIN with its own toggle: mask first, inputProps after (the mask docs pattern)", async () => {
+    let pinForm!: UseFormReturn<{ pin: string }>;
+    function Pin() {
+      pinForm = useForm<{ pin: string }>({ defaultValues: { pin: "" } });
+      const { pin } = useViraMask(pinForm, { pin: { mask: "999999" } });
+      const pw = useViraPassword({ id: "pin" });
+      return <input aria-label="PIN" {...pin} {...pw.inputProps} />;
+    }
+    render(<Pin />);
+    await userEvent.type(input("PIN"), "12ab3456789");
+    // The mask still owns the value: digits only, six of them.
+    expect(input("PIN").value).toBe("123456");
+    expect(pinForm.getValues("pin")).toBe("123456");
+    expect(input("PIN").type).toBe("password");
+  });
 });

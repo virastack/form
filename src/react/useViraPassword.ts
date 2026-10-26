@@ -227,23 +227,20 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   const value = providedValue ?? (typeof userValue === 'string' ? userValue : typed);
   const isVisible = controlledVisible ?? uncontrolledVisible;
   const generatedId = useId();
-  const inputId = providedId || `virapassword-input-${generatedId}`;
-
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const setInputRef = useCallback((node: HTMLInputElement | null) => {
-    inputRef.current = node;
-  }, []);
+  // inputProps.id wins over id, so the button and the listeners follow the id the input really gets.
+  const inputId = (typeof userInputProps?.id === 'string' && userInputProps.id) || providedId || `virapassword-input-${generatedId}`;
 
   // Read from event handlers and listeners without re-subscribing on every render.
-  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith });
-  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith };
+  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, hideOnBlur, tracksValue });
+  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, hideOnBlur, tracksValue };
 
   // Set between a pointer press on the toggle and its click.
   const pointerPress = useRef<{ start: number | null; end: number | null } | null>(null);
 
+  // Found by id: inputProps has no ref, so it never replaces the ref of register() or a mask.
   const getInput = useCallback((): HTMLInputElement | null => {
-    // The user may spread their own ref after ours; fall back to the id.
-    return inputRef.current ?? (typeof document === 'undefined' ? null : (document.getElementById(inputId) as HTMLInputElement | null));
+    const element = typeof document === 'undefined' ? null : document.getElementById(inputId);
+    return element instanceof HTMLInputElement ? element : null;
   }, [inputId]);
 
   const commit = useCallback((next: boolean) => {
@@ -307,16 +304,39 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [hideOnBlur, hide]);
 
-  const onFieldBlur = (event: React.FocusEvent<HTMLElement>) => {
-    if (!hideOnBlur || pointerPress.current) return;
-    const next = event.relatedTarget;
+  const hideOnFocusLeave = useCallback((next: EventTarget | null) => {
+    if (!latest.current.hideOnBlur || pointerPress.current) return;
     if (next instanceof Element && (next.id === inputId || next.getAttribute('aria-controls') === inputId)) return;
     hide();
-  };
+  }, [inputId, hide]);
 
-  const onCapsLock = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    setCapsLock(event.getModifierState?.('CapsLock') ?? false);
-  };
+  // inputProps carries attributes only, as in 1.0, so it can be spread before or after register()
+  // or a mask field without replacing their handlers. Keys, blur and typing are read natively.
+  useEffect(() => {
+    const isInput = (target: EventTarget | null): target is HTMLInputElement =>
+      target instanceof HTMLInputElement && target.id === inputId;
+    const onKey = (event: KeyboardEvent) => {
+      if (isInput(event.target)) setCapsLock(event.getModifierState?.('CapsLock') ?? false);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      if (!isInput(event.target)) return;
+      setCapsLock(false);
+      hideOnFocusLeave(event.relatedTarget);
+    };
+    const onInput = (event: Event) => {
+      if (latest.current.tracksValue && isInput(event.target)) setTyped(event.target.value);
+    };
+    document.addEventListener('keydown', onKey, true);
+    document.addEventListener('keyup', onKey, true);
+    document.addEventListener('focusout', onFocusOut, true);
+    document.addEventListener('input', onInput, true);
+    return () => {
+      document.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('keyup', onKey, true);
+      document.removeEventListener('focusout', onFocusOut, true);
+      document.removeEventListener('input', onInput, true);
+    };
+  }, [inputId, hideOnFocusLeave]);
 
   const strength = policy ? policy.evaluate(value, { forbidden }) : null;
   const matches = matchWith === undefined || value === '' ? null : sameText(value, matchWith);
@@ -349,14 +369,6 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     spellCheck: false,
     autoCorrect: 'off',
     autoCapitalize: 'off',
-    ref: setInputRef,
-    ...(tracksValue ? { onChange: (event: React.ChangeEvent<HTMLInputElement>) => setTyped(event.target.value) } : {}),
-    onKeyDown: onCapsLock,
-    onKeyUp: onCapsLock,
-    onBlur: (event) => {
-      setCapsLock(false);
-      onFieldBlur(event);
-    },
     ...getInputAriaAttributes(undefined, policy ? strengthId : undefined),
   };
 
@@ -386,7 +398,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
       input.focus();
       if (press.start !== null && press.end !== null) input.setSelectionRange(press.start, press.end);
     },
-    onBlur: onFieldBlur,
+    onBlur: (event) => hideOnFocusLeave(event.relatedTarget),
     disabled: disabled || readOnly,
     children: isVisible ? hideIcon : showIcon,
     ...getButtonAriaAttributes(isVisible, inputId),

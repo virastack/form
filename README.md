@@ -62,37 +62,38 @@ export const policy = definePolicy(); // NIST: 15–64 characters
 ```
 
 ```tsx
-import { mergeProps, useViraPassword } from "@virastack/password";
-import { useForm } from "react-hook-form";
+import { useViraPassword } from "@virastack/password";
+import { useForm, useWatch } from "react-hook-form";
 import { policy } from "@/lib/password-policy";
 
 function Signup() {
   const form = useForm({ defaultValues: { email: "", password: "", confirm: "" } });
-  const password = form.watch("password");
+  const [email, password, confirmValue] = useWatch({ control: form.control, name: ["email", "password", "confirm"] });
 
-  const pw = useViraPassword({ policy, value: password, forbidden: [form.watch("email")] });
-  const confirm = useViraPassword({ matchWith: password, value: form.watch("confirm") });
+  const pw = useViraPassword({ policy, value: password, forbidden: [email] });
+  const confirm = useViraPassword({ matchWith: password, value: confirmValue });
 
   return (
-    <form onSubmit={form.handleSubmit(console.log)}>
+    <form method="post" onSubmit={form.handleSubmit(console.log)}>
       <input type="email" autoComplete="username" {...form.register("email")} />
 
       {/* deps re-checks the confirm field when the password changes */}
-      <input {...mergeProps(pw.inputProps, form.register("password", { ...pw.rule, deps: ["confirm"] }))} />
+      <input {...pw.inputProps} {...form.register("password", { ...pw.rule, deps: ["confirm"] })} />
       <button {...pw.btnProps} />
       <p {...pw.strengthProps}>{pw.strength?.level}</p>
       {pw.capsLock && <p>Caps Lock is on</p>}
 
-      <input {...mergeProps(confirm.inputProps, form.register("confirm", confirm.rule))} />
+      <input {...confirm.inputProps} {...form.register("confirm", confirm.rule)} />
       <button {...confirm.btnProps} />
     </form>
   );
 }
 ```
 
-- Pass `value` from `watch()`: `reset()` and `setValue()` don't fire input events.
-- Use `mergeProps` (or `inputProps: register(...)`) instead of spreading `register()` after `inputProps`, so both sets of handlers run.
+- `inputProps` only holds attributes (no ref, no handlers), so spread it before or after `register()` or a ViraStack Mask field.
+- Pass `value` from `useWatch()`: `reset()` and `setValue()` don't fire input events.
 - `deps` only runs on user input. After `setValue("password", …)`, call `trigger("confirm")`.
+- `method="post"`: a submit before hydration never puts the password in the URL.
 
 ## Options
 
@@ -107,7 +108,7 @@ function Signup() {
 | `value` | Current value, e.g. `watch("password")` |
 | `disabled`, `readOnly` | Disable the toggle and mirror the state on the input |
 | `icons` | `{ show, hide }` custom icons |
-| `id`, `inputProps`, `btnProps` | Props merged into the generated ones |
+| `id`, `inputProps`, `btnProps` | Props merged into the generated ones (`inputProps.id` wins over `id`) |
 
 Returns `{ inputProps, btnProps, isVisible, toggle, setVisible, capsLock, strength, strengthProps, matches, issues, rule }`.
 

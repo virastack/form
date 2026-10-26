@@ -1,8 +1,12 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState, type FormEvent } from "react";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { composeRefs, useViraPassword, type UseViraPasswordOptions } from "../src";
+import { definePolicy } from "../src/strength";
+
+const policy = definePolicy();
 
 function Field(props: UseViraPasswordOptions & { onSubmit?: (event: FormEvent) => void; onCaps?: (on: boolean) => void }) {
   const { onSubmit = (e) => e.preventDefault(), onCaps, ...options } = props;
@@ -404,7 +408,75 @@ describe("user props", () => {
     expect(register).toHaveBeenLastCalledWith(input());
     expect(input()).toHaveAttribute("name", "password");
     unmount();
-    expect(register).toHaveBeenLastCalledWith(null);
+    expect(register.mock.lastCall?.[0]).toBeNull();
+  });
+});
+
+describe("attribute-only inputProps (regression: 1.1 must not break 1.0 spreads)", () => {
+  it("has no ref and no handlers of its own", () => {
+    let pw!: ReturnType<typeof useViraPassword>;
+    function Probe() {
+      pw = useViraPassword({ policy: undefined, matchWith: "x" });
+      return null;
+    }
+    render(<Probe />);
+    expect(pw.inputProps).not.toHaveProperty("ref");
+    expect(Object.values(pw.inputProps).filter((value) => typeof value === "function")).toEqual([]);
+  });
+
+  it("keeps register()'s ref and onBlur when spread after register()", async () => {
+    let form!: UseFormReturn<{ password: string }>;
+    function Login() {
+      form = useForm({ defaultValues: { password: "" }, mode: "onBlur" });
+      const pw = useViraPassword({ hideOnBlur: true, defaultVisible: true });
+      return (
+        <form>
+          {/* the 1.0 pattern: register first, inputProps after */}
+          <input aria-label="Password" {...form.register("password", { required: "password.required" })} {...pw.inputProps} />
+          <input aria-label="Other" />
+          {pw.capsLock && <p>Caps Lock is on</p>}
+          <p role="alert">{form.formState.errors.password?.message}</p>
+        </form>
+      );
+    }
+    render(<Login />);
+    // ref kept: setValue writes to the DOM
+    act(() => form.setValue("password", "from-code"));
+    expect(input().value).toBe("from-code");
+    // onBlur kept: mode "onBlur" validates
+    act(() => form.setValue("password", ""));
+    await userEvent.click(input());
+    fireEvent.keyDown(input(), { key: "A", modifierCapsLock: true });
+    expect(screen.getByText("Caps Lock is on")).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText("Other"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("password.required");
+    // and the hook still saw the blur
+    expect(screen.queryByText("Caps Lock is on")).toBeNull();
+    expect(input().type).toBe("password");
+  });
+
+  it("follows typing when register()'s onChange comes after", async () => {
+    function Signup() {
+      const form = useForm({ defaultValues: { password: "" } });
+      const pw = useViraPassword({ policy });
+      return (
+        <>
+          <input aria-label="Password" {...pw.inputProps} {...form.register("password")} />
+          <p data-testid="level">{pw.strength?.level}</p>
+        </>
+      );
+    }
+    render(<Signup />);
+    await userEvent.type(input(), "vu7#Kq2!mz9@Lw4X");
+    expect(screen.getByTestId("level")).toHaveTextContent("strong");
+  });
+
+  it("uses inputProps.id for aria-controls and lookups", async () => {
+    render(<Field defaultVisible inputProps={{ id: "custom-id" }} />);
+    expect(input().id).toBe("custom-id");
+    expect(toggleButton()).toHaveAttribute("aria-controls", "custom-id");
+    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(input().type).toBe("password");
   });
 });
 

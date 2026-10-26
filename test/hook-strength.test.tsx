@@ -77,10 +77,13 @@ describe("with a policy", () => {
     expect(pw.issues).toEqual(["password.containsPersonalInfo"]);
   });
 
-  it("only follows typing when nothing else gives the value", () => {
+  it("only follows typing when nothing else gives the value", async () => {
+    // value given: typing doesn't change the result
+    render(<Meter policy={policy} value="" />);
+    await userEvent.type(input(), STRONG);
+    expect(screen.getByRole("status")).toHaveTextContent("weak");
+    // the user's onChange is kept as is
     const user = () => {};
-    expect(renderHook(() => useViraPassword({ policy })).result.current.inputProps.onChange).toBeTypeOf("function");
-    expect(renderHook(() => useViraPassword({ policy, value: "" })).result.current.inputProps.onChange).toBeUndefined();
     expect(renderHook(() => useViraPassword({ policy, inputProps: { value: "", onChange: user } })).result.current.inputProps.onChange).toBe(user);
   });
 
