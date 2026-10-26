@@ -48,6 +48,10 @@ describe("types", () => {
     expectTypeOf(pw.issues).toEqualTypeOf<PasswordIssue[]>();
     expectTypeOf(pw.rule.validate).returns.toEqualTypeOf<true | PasswordIssue>();
     expectTypeOf(pw.strengthProps.role).toEqualTypeOf<"status">();
+    expectTypeOf(pw.matches).toEqualTypeOf<boolean | null>();
+    useViraPassword({ matchWith: "x" });
+    // @ts-expect-error matchWith is a string
+    useViraPassword({ matchWith: 1 });
   });
 
   it("mergeProps combines two prop types", () => {

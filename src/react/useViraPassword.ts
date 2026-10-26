@@ -54,6 +54,12 @@ export interface UseViraPasswordOptions {
   forbidden?: readonly unknown[];
 
   /**
+   * The password this field must repeat, e.g. `watch("password")` on a confirm field.
+   * Enables `matches` and the `password.mismatch` key.
+   */
+  matchWith?: string;
+
+  /**
    * The current value, e.g. `watch("password")`. Without it the hook follows typing in the input,
    * which misses `reset(values)` and `setValue()` from a form library.
    */
@@ -107,6 +113,8 @@ export interface UseViraPasswordResult {
   strength: StrengthResult | null;
   /** Spread on the element that shows the strength, so screen readers announce it. */
   strengthProps: ViraPasswordStrengthProps;
+  /** With `matchWith`: whether the value repeats it; `null` while the field is empty or without `matchWith`. */
+  matches: boolean | null;
   /** Error keys for the current value. */
   issues: PasswordIssue[];
   /** A validation rule for React Hook Form: `register("password", pw.rule)`. Returns the first error key. */
@@ -184,6 +192,9 @@ function mergeProps(...args: (object | undefined)[]): object {
   return result;
 }
 
+// Same comparison as the server: NFKC, so "é" typed two ways still matches.
+const sameText = (a: string, b: string) => a.normalize('NFKC') === b.normalize('NFKC');
+
 export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPasswordResult => {
   const {
     defaultVisible = false,
@@ -194,6 +205,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     autoComplete,
     policy,
     forbidden,
+    matchWith,
     value: providedValue,
     icons,
     disabled = false,
@@ -206,7 +218,8 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   const [uncontrolledVisible, setUncontrolledVisible] = useState(defaultVisible);
   const [capsLock, setCapsLock] = useState(false);
   const userValue = userInputProps?.value;
-  const tracksValue = policy !== undefined && providedValue === undefined && typeof userValue !== 'string';
+  const checksValue = policy !== undefined || matchWith !== undefined;
+  const tracksValue = checksValue && providedValue === undefined && typeof userValue !== 'string';
   const [typed, setTyped] = useState(() => {
     const initial = userInputProps?.defaultValue;
     return typeof initial === 'string' ? initial : '';
@@ -222,8 +235,8 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   }, []);
 
   // Read from event handlers and listeners without re-subscribing on every render.
-  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden });
-  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden };
+  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith });
+  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith };
 
   // Set between a pointer press on the toggle and its click.
   const pointerPress = useRef<{ start: number | null; end: number | null } | null>(null);
@@ -306,16 +319,19 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   };
 
   const strength = policy ? policy.evaluate(value, { forbidden }) : null;
-  const issues = strength ? strength.issues : [];
+  const matches = matchWith === undefined || value === '' ? null : sameText(value, matchWith);
+  const issues: PasswordIssue[] = strength ? [...strength.issues] : [];
+  if (matches === false) issues.push('password.mismatch');
   const strengthId = `${inputId}-strength`;
 
   // Stable, and always checks the latest policy, so it can go straight into register().
   const [rule] = useState<ViraPasswordRule>(() => ({
     validate: (input) => {
-      const { policy: currentPolicy, forbidden: currentForbidden } = latest.current;
+      const { policy: currentPolicy, forbidden: currentForbidden, matchWith: currentMatch } = latest.current;
       const text = typeof input === 'string' ? input : '';
       const result = currentPolicy?.evaluate(text, { forbidden: currentForbidden });
       if (result && !result.valid) return result.issues[0];
+      if (currentMatch !== undefined && !sameText(text, currentMatch)) return 'password.mismatch';
       return true;
     },
   }));
@@ -329,7 +345,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     type: getInputType(isVisible),
     disabled,
     readOnly,
-    ...(autoComplete === false ? {} : { autoComplete: autoComplete ?? (policy ? 'new-password' : 'current-password') }),
+    ...(autoComplete === false ? {} : { autoComplete: autoComplete ?? (checksValue ? 'new-password' : 'current-password') }),
     spellCheck: false,
     autoCorrect: 'off',
     autoCapitalize: 'off',
@@ -389,6 +405,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     toggle,
     setVisible,
     strength,
+    matches,
     strengthProps: { id: strengthId, role: 'status', 'aria-live': 'polite', 'aria-atomic': true },
     issues,
     rule,
