@@ -38,6 +38,8 @@
 npm install @virastack/password
 ```
 
+Requires React and React DOM 18.2+ (React 19 supported). Upgrading from 1.0? Nothing breaks; see the [upgrade guide](https://virastack.com/password/docs/upgrade).
+
 ```tsx
 import { useViraPassword } from "@virastack/password";
 
@@ -105,12 +107,24 @@ function Signup() {
 | `autoComplete` | Default `current-password`; `new-password` with `policy` or `matchWith`; `false` leaves it out |
 | `policy`, `forbidden` | Strength policy and values the password must not contain |
 | `matchWith` | The password a confirm field must repeat |
-| `value` | Current value, e.g. `watch("password")` |
+| `value` | Current value, e.g. from `useWatch()` |
 | `disabled`, `readOnly` | Disable the toggle and mirror the state on the input |
 | `icons` | `{ show, hide }` custom icons |
 | `id`, `inputProps`, `btnProps` | Props merged into the generated ones (`inputProps.id` wins over `id`) |
 
 Returns `{ inputProps, btnProps, isVisible, toggle, setVisible, capsLock, strength, strengthProps, matches, issues, rule }`.
+
+## With ViraStack Mask
+
+[ViraStack Mask](https://github.com/virastack/mask) v2 also keeps values in React Hook Form, so both share one `useForm`. Use them on different inputs; to put a toggle on a masked field (a PIN), spread the mask field and `inputProps` together:
+
+```tsx
+const { pin } = useViraMask(form, { pin: { mask: "999999" } });
+const pinToggle = useViraPassword({ autoComplete: false });
+
+<input {...pin} {...pinToggle.inputProps} />
+<button {...pinToggle.btnProps} />
+```
 
 ## Strength
 
