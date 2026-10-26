@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { useViraPassword } from './useViraPassword';
+import { useViraPassword } from "../src";
 import React from 'react';
 
 describe('useViraPassword', () => {
@@ -121,5 +121,23 @@ describe('useViraPassword', () => {
     expect(result.current.btnProps['aria-controls']).toBe('test-id');
     expect(result.current.btnProps['aria-label']).toBe('Toggle password visibility');
     expect(result.current.btnProps.type).toBe('button');
+  });
+
+  it('setVisible sets the state and respects disabled', () => {
+    const { result, rerender } = renderHook((props: { disabled?: boolean }) => useViraPassword(props), {
+      initialProps: {},
+    });
+    act(() => result.current.setVisible(true));
+    expect(result.current.isVisible).toBe(true);
+    rerender({ disabled: true });
+    act(() => result.current.setVisible(false));
+    expect(result.current.isVisible).toBe(true);
+  });
+
+  it('renders the default icons and generates an id', () => {
+    const { result } = renderHook(() => useViraPassword());
+    expect(result.current.inputProps.id).toMatch(/^virapassword-input-/);
+    expect(result.current.btnProps['aria-controls']).toBe(result.current.inputProps.id);
+    expect(React.isValidElement(result.current.btnProps.children)).toBe(true);
   });
 });

@@ -1,7 +1,12 @@
-node_modules
-dist
+node_modules/
+dist/
+*.log
 .DS_Store
+package-lock.json
 .env
+.env.local
 .idea
 .vscode
-coverage
+coverage/
+reports/
+.stryker-tmp/

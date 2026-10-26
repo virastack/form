@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useId, useCallback, ReactNode } from 'react';
 import { EyeIcon, EyeOffIcon } from '../icons';
 import { getInputType, getButtonAriaAttributes, getInputAriaAttributes } from '../core/logic';
@@ -58,16 +56,17 @@ export interface UseViraPasswordResult {
 /**
  * A utility to merge event handlers and other props.
  */
-const mergeProps = <T extends Record<string, any>>(
+type Handler = (...args: unknown[]) => unknown;
+
+const mergeProps = <T extends object>(
   ...args: (T | undefined)[]
 ): T => {
-  const result: Record<string, any> = {};
+  const result: Record<string, unknown> = {};
 
   for (const props of args) {
     if (!props) continue;
 
-    for (const key in props) {
-      const val = props[key];
+    for (const [key, val] of Object.entries(props)) {
       const existing = result[key];
 
       if (
@@ -75,9 +74,9 @@ const mergeProps = <T extends Record<string, any>>(
         typeof val === 'function' &&
         typeof existing === 'function'
       ) {
-        result[key] = (...args: any[]) => {
-          existing(...args);
-          val(...args);
+        result[key] = (...args: unknown[]) => {
+          (existing as Handler)(...args);
+          (val as Handler)(...args);
         };
       } else if (key === 'className' && typeof val === 'string' && typeof existing === 'string') {
         result[key] = [existing, val].filter(Boolean).join(' ');

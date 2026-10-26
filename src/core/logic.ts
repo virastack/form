@@ -24,12 +24,17 @@ export const getButtonAriaAttributes = (
 /**
  * Generates ARIA attributes for the input field.
  */
+export interface InputAriaAttributes {
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string;
+}
+
 export const getInputAriaAttributes = (
   isInvalid?: boolean,
   describedBy?: string
-) => {
-  const attrs: Record<string, any> = {};
-  
+): InputAriaAttributes => {
+  const attrs: InputAriaAttributes = {};
+
   if (isInvalid !== undefined) {
     attrs['aria-invalid'] = isInvalid;
   }

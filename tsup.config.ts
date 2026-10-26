@@ -1,22 +1,16 @@
-import { defineConfig } from 'tsup';
-import fs from 'fs';
+import { defineConfig, type Options } from "tsup";
 
-export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['cjs', 'esm'],
+const shared: Options = {
+  format: ["esm", "cjs"],
   dts: true,
-  splitting: false,
   sourcemap: true,
-  clean: true,
-  treeshake: true,
-  external: ['react', 'react-dom'],
-  async onSuccess() {
-    const files = ['dist/index.js', 'dist/index.mjs'];
-    for (const file of files) {
-      if (fs.existsSync(file)) {
-        const content = fs.readFileSync(file, 'utf8');
-        fs.writeFileSync(file, '"use client";\n' + content);
-      }
-    }
-  },
-});
+  splitting: false,
+  target: "es2022",
+  external: ["react", "react-dom"],
+  outExtension: ({ format }) => ({ js: format === "cjs" ? ".cjs" : ".mjs" }),
+};
+
+export default defineConfig([
+  // The hook entry runs on the client only.
+  { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
+]);
