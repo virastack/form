@@ -1,0 +1,6 @@
+body { font-family: system-ui, sans-serif; margin: 0; }
+form { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+label { display: grid; gap: 4px; font-size: 13px; }
+input, select { font-size: 16px; padding: 6px 8px; }
+small { color: #c00; }
+p, output, pre { grid-column: 1 / -1; white-space: pre-wrap; word-break: break-all; }

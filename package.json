@@ -1,7 +1,7 @@
 {
   "name": "@virastack/password",
-  "version": "1.0.2",
-  "description": "Fully accessible and customizable password visibility hook for React.",
+  "version": "1.1.0",
+  "description": "Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks.",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",
@@ -83,9 +83,10 @@
     "typecheck": "tsc -p .",
     "lint": "eslint .",
     "size": "size-limit",
-    "check:package": "publint --strict && attw --pack . --profile node16",
+    "check:package": "publint --strict && attw --pack . --profile node16 && node scripts/check-dist.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm test:coverage && pnpm build && pnpm check:package && pnpm size",
-    "prepublishOnly": "pnpm check"
+    "prepublishOnly": "pnpm check",
+    "e2e:next": "node e2e/nextjs/run.mjs"
   },
   "keywords": [
     "virastack",
@@ -93,9 +94,16 @@
     "hook",
     "password",
     "password-visibility",
+    "password-strength",
+    "password-confirmation",
+    "nist",
+    "have-i-been-pwned",
+    "react-hook-form",
+    "server-actions",
     "accessibility",
     "a11y",
     "form-validation",
+    "typescript",
     "dx"
   ],
   "peerDependencies": {

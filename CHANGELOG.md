@@ -1,5 +1,31 @@
 # Changelog
 
+## [v1.1.0] - Unreleased
+
+### Added
+
+- **Entries**: `@virastack/password/strength` (`definePolicy`, `evaluate`, `normalizePassword`), `@virastack/password/server` (`validatePassword`) and `@virastack/password/pwned` (`checkPwned`). None of them has `"use client"`.
+- **Strength**: `nist` (15–64 characters, no composition rules) and `legacy` presets, common password list, repetition and keyboard sequence checks, a policy `blocklist`, and `forbidden` values (email, name). NFKC and code point length. Error keys instead of messages.
+- **Hook**: `policy`, `forbidden`, `value`, `matchWith`, `visible`, `onVisibleChange`, `hideOnSubmit`, `hideOnBlur` and `autoComplete` options; `strength`, `strengthProps`, `matches`, `issues`, `rule` and `capsLock` in the result.
+- **Hide on submit**: the password is hidden when its form is submitted or reset, so password managers see a password field. Turn off with `hideOnSubmit: false`.
+- **Focus**: a mouse or touch press on the toggle returns focus and the caret to the input; a keyboard press keeps focus on the button.
+- **`composeRefs`** helper. `inputProps` now carries a `ref`.
+- **Leaked passwords**: Have I Been Pwned range API with k-anonymity and padding; never throws.
+
+### Changed
+
+- The input gets `autoComplete="current-password"` (`new-password` with `policy` or `matchWith`), `spellCheck={false}`, `autoCorrect="off"` and `autoCapitalize="off"` by default. Override them through `inputProps`, or pass `autoComplete: false`.
+- `mergeProps` composes `ref`s and joins `aria-describedby`; it accepts two different prop types.
+- `getInputAriaAttributes` returns a typed object instead of `Record<string, any>`.
+- Package: `.mjs`/`.cjs` with `.d.mts`/`.d.cts` types (checked with attw and publint). Deep imports into `dist` were never part of the API and the file names changed.
+
+### Quality
+
+- No `any`; ESLint `no-explicit-any`, type tests.
+- Unit, property-based, browser (Chromium, Firefox, WebKit) and Next.js tests; CI on 3 OSes × Node 20/22/24 and React 18.
+- Size budgets with size-limit.
+
+
 ## [v1.0.2] - 2026-08-01
 
 ### Documentation
