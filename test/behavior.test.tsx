@@ -291,6 +291,7 @@ describe("controlled visibility", () => {
 describe("Caps Lock", () => {
   it("tracks the modifier while typing and clears on blur", () => {
     render(<Field />);
+    expect(screen.queryByText("Caps Lock is on")).toBeNull();
     fireEvent.keyDown(input(), { key: "A", modifierCapsLock: true });
     expect(screen.getByText("Caps Lock is on")).toBeInTheDocument();
     fireEvent.keyUp(input(), { key: "CapsLock", modifierCapsLock: false });
@@ -346,6 +347,15 @@ describe("hideOnBlur", () => {
     expect(input().type).toBe("text");
     state.mockReturnValue("hidden");
     fireEvent(document, new Event("visibilitychange"));
+    expect(input().type).toBe("password");
+  });
+
+  it("keeps the field visible while focus moves between the input and the toggle", () => {
+    render(<Field defaultVisible hideOnBlur />);
+    fireEvent.blur(input(), { relatedTarget: toggleButton() });
+    fireEvent.blur(toggleButton(), { relatedTarget: input() });
+    expect(input().type).toBe("text");
+    fireEvent.blur(input(), { relatedTarget: screen.getByLabelText("Other") });
     expect(input().type).toBe("password");
   });
 

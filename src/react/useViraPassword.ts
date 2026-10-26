@@ -378,10 +378,9 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     onClick: () => {
       const press = pointerPress.current;
       pointerPress.current = null;
-      if (disabled || readOnly) return;
       flushSync(toggle);
       // A mouse or touch press returns focus to the input; a keyboard press keeps it on the button.
-      if (!press) return;
+      if (!press || disabled || readOnly) return;
       const input = getInput();
       if (!input) return;
       input.focus();

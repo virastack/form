@@ -158,6 +158,11 @@ describe("checkPwned", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("without crypto at all → unknown", async () => {
+    vi.stubGlobal("crypto", undefined);
+    expect(await checkPwned("password", { fetch: respond("") })).toEqual({ status: "unknown", reason: "unsupported" });
+  });
+
   it("when digest fails → unknown", async () => {
     vi.stubGlobal("crypto", { subtle: { digest: () => Promise.reject(new Error("nope")) } });
     expect(await checkPwned("password", { fetch: respond("") })).toEqual({ status: "unknown", reason: "unsupported" });

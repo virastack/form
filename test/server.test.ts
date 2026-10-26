@@ -43,6 +43,8 @@ describe("validatePassword", () => {
     expect(mismatch).toMatchObject({ valid: false, issues: ["password.mismatch"], level: "strong" });
     expect(validatePassword(STRONG, policy, { confirm: null }).issues).toEqual(["password.mismatch"]);
     expect(validatePassword(STRONG, policy, { confirm: undefined }).issues).toEqual(["password.mismatch"]);
+    // A missing confirm value counts as empty, like a missing password.
+    expect(validatePassword(null, policy, { confirm: null }).issues).toEqual(["password.tooShort"]);
     // Without the confirm key there is nothing to compare.
     expect(validatePassword(STRONG, policy, {}).issues).toEqual([]);
   });

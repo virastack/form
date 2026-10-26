@@ -44,6 +44,12 @@ describe("definePolicy", () => {
     expect(Object.isFrozen(nist.blocklist)).toBe(true);
   });
 
+  it("accepts rules right at their limits", () => {
+    expect(definePolicy({ minLength: 10, maxLength: 10 }).minLength).toBe(10);
+    expect(definePolicy({ preset: "legacy", minLength: 4, maxLength: 4 }).maxLength).toBe(4);
+    expect(definePolicy({ minLength: 1, maxLength: 1 }).maxLength).toBe(1);
+  });
+
   it.each([
     [{ minLength: 20, maxLength: 10 }, /greater than maxLength/],
     [{ minLength: 0 }, /minLength must be a positive integer/],
@@ -175,6 +181,7 @@ describe("common passwords", () => {
     "qwerty123456789!",
     "1234567890qwerty",
     "summer2024summer2024",
+    "passwordpass1234567",
   ])("%s", (pw) => {
     expect(issues(pw)).toContain("password.common");
   });
@@ -217,8 +224,16 @@ describe("repetition and sequences", () => {
     "azertyuiopqsdfgh",
     "1qaz2wsx3edc4rfv",
     "aaaaaaaaaaaaaaaZ",
+    "abcdeabcdeabcdeab",
+    "xk9#xk9#xk9#xk9#x",
   ])("%s", (pw) => {
     expect(issues(pw)).toContain("password.repetitive");
+  });
+
+  it("finds units that need the KMP fallback", () => {
+    // "aab" repeated: the prefix function has to fall back to find the period.
+    expect(issues("aabxaabxaabxaabx")).toContain("password.repetitive");
+    expect(issues("abacabadabacabae")).not.toContain("password.repetitive");
   });
 
   it.each(["xk9#mQ2!xk9#mQ2!", OK15, "the-rain-in-spain-falls", "ab12cd34ef56gh78"])("not repetitive: %s", (pw) => {
@@ -239,6 +254,23 @@ describe("policy blocklist", () => {
     expect(issues("my-v1r4st4ck-account", policy)).toEqual(["password.blocked"]);
     expect(issues("my vira stack account", policy)).toEqual(["password.blocked"]);
     expect(issues("my-other-account-here", policy)).toEqual([]);
+  });
+
+  it.each([
+    ["0", "o"],
+    ["1", "i"],
+    ["3", "e"],
+    ["4", "a"],
+    ["5", "s"],
+    ["7", "t"],
+    ["8", "b"],
+    ["@", "a"],
+    ["$", "s"],
+    ["!", "i"],
+    ["+", "t"],
+  ])("reads %s as %s", (leet, letter) => {
+    const word = `qz${letter}qz`;
+    expect(issues(`long-prefix-qz${leet}qz-x`, definePolicy({ blocklist: [word] }))).toEqual(["password.blocked"]);
   });
 
   it("normalizes words and drops empty ones", () => {
@@ -351,6 +383,29 @@ describe("score", () => {
   it("failing passwords score 0–1", () => {
     expect(evaluate("kjhqwmzx", nist).score).toBe(1);
     expect(evaluate("kjh", nist).score).toBe(0);
+    // Half the minimum length is the line between 0 and 1.
+    expect(evaluate("kjhqwmzx", definePolicy({ minLength: 16 })).score).toBe(1);
+    expect(evaluate("kjhqwmz", definePolicy({ minLength: 16 })).score).toBe(0);
+  });
+
+  it.each([
+    ["password", ["password.tooShort", "password.common"]],
+    ["aaaaaaaaaaaaaaa", ["password.repetitive"]],
+    ["my-acme-account-pw", ["password.blocked"]],
+    ["omer-garden-path-91", ["password.containsPersonalInfo"]],
+  ])("any severe issue scores 0: %s", (pw, expected) => {
+    const result = evaluate(pw, definePolicy({ blocklist: ["acme"] }), { forbidden: ["omer@example.com"] });
+    expect(result.issues).toEqual(expected);
+    expect(result.score).toBe(0);
+  });
+
+  it("each character class widens the pool", () => {
+    // 20 digits: 10 symbols in the pool → fair; the same length with letters and digits → strong.
+    expect(evaluate("83920174658291037465", nist).score).toBe(2);
+    expect(evaluate("kmqxvzwprt" + "kmqxvzwprt".toUpperCase(), nist).score).toBe(4);
+    expect(evaluate("kmqxvzwprtbgjhn", nist).score).toBe(2);
+    expect(evaluate("k3m9q2x7v4z8w1p6r5t0", nist).score).toBe(4);
+    expect(evaluate("kmqxvzwprtbgjhnldfsy", nist).score).toBe(3);
   });
 
   it("non-strings count as empty", () => {

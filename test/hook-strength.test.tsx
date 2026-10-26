@@ -77,6 +77,13 @@ describe("with a policy", () => {
     expect(pw.issues).toEqual(["password.containsPersonalInfo"]);
   });
 
+  it("only follows typing when nothing else gives the value", () => {
+    const user = () => {};
+    expect(renderHook(() => useViraPassword({ policy })).result.current.inputProps.onChange).toBeTypeOf("function");
+    expect(renderHook(() => useViraPassword({ policy, value: "" })).result.current.inputProps.onChange).toBeUndefined();
+    expect(renderHook(() => useViraPassword({ policy, inputProps: { value: "", onChange: user } })).result.current.inputProps.onChange).toBe(user);
+  });
+
   it("prefers the value option over typing", async () => {
     const { rerender } = render(<Meter policy={policy} value={STRONG} />);
     expect(screen.getByRole("status")).toHaveTextContent("strong");

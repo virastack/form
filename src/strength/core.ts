@@ -38,7 +38,7 @@ const fold = (value: string): string =>
 
 const deLeet = (value: string): string => value.replace(/[0-9@$!+]/g, (c) => LEET[c] ?? c);
 
-/** Length of the shortest unit the string repeats, e.g. 3 for "abcabcabc". */
+/** Length of the shortest unit the string repeats, e.g. 3 for "abcabcab" (the last copy may be cut short). */
 const period = (value: string[]): number => {
   const n = value.length;
   const lps = new Array<number>(n).fill(0);
@@ -47,8 +47,7 @@ const period = (value: string[]): number => {
     if (value[i] === value[k]) k++;
     lps[i] = k;
   }
-  const p = n - (lps[n - 1] ?? 0);
-  return n % p === 0 ? p : n;
+  return n - (lps[n - 1] ?? 0);
 };
 
 const unit = (value: string): string => {

@@ -17,8 +17,9 @@ describe("logic", () => {
   });
 
   it("only sets the input attributes it gets", () => {
-    expect(getInputAriaAttributes()).toEqual({});
-    expect(getInputAriaAttributes(false)).toEqual({ "aria-invalid": false });
+    expect(getInputAriaAttributes()).toStrictEqual({});
+    expect(getInputAriaAttributes(undefined, "")).toStrictEqual({});
+    expect(getInputAriaAttributes(false)).toStrictEqual({ "aria-invalid": false });
     expect(getInputAriaAttributes(true, "hint")).toEqual({ "aria-invalid": true, "aria-describedby": "hint" });
   });
 });
@@ -40,6 +41,21 @@ describe("mergeProps", () => {
       className: "a b",
       id: "y",
     });
+  });
+
+  it("a later undefined handler wins and is not called", () => {
+    const fn = vi.fn();
+    const merged = mergeProps<{ onClick?: () => void }>({ onClick: fn }, { onClick: undefined });
+    expect(merged.onClick).toBeUndefined();
+  });
+
+  it("joins aria-describedby, skips empty class names, lets a non-string win", () => {
+    expect(mergeProps<{ "aria-describedby"?: string }>({ "aria-describedby": "a" }, { "aria-describedby": "b" })).toEqual({
+      "aria-describedby": "a b",
+    });
+    expect(mergeProps<{ className?: string }>({ className: "a" }, { className: "" })).toEqual({ className: "a" });
+    expect(mergeProps<{ className?: string }>({ className: "a" }, { className: undefined })).toEqual({ className: undefined });
+    expect(mergeProps<{ title?: string }>({ title: "a" }, { title: "b" })).toEqual({ title: "b" });
   });
 
   it("replaces a non-function with a handler", () => {
