@@ -1,6 +1,7 @@
 import type React from "react";
 import { describe, expectTypeOf, it } from "vitest";
 import { getInputAriaAttributes, mergeProps, useViraPassword, type UseViraPasswordResult } from "../src";
+import { checkPwned, type PwnedResult } from "../src/pwned";
 import { validatePassword, type PasswordValidation } from "../src/server";
 import { definePolicy, evaluate, type PasswordIssue, type Policy, type StrengthResult } from "../src/strength";
 
@@ -70,5 +71,12 @@ describe("types", () => {
     expectTypeOf(result.password).toEqualTypeOf<string>();
     // @ts-expect-error policy is required
     validatePassword("x");
+  });
+
+  it("pwned types", async () => {
+    const result = await checkPwned("x", { signal: AbortSignal.timeout(1000), timeout: 2000 });
+    expectTypeOf(result).toEqualTypeOf<PwnedResult>();
+    if (result.status === "pwned") expectTypeOf(result.count).toEqualTypeOf<number>();
+    if (result.status === "unknown") expectTypeOf(result.reason).toExtend<string>();
   });
 });

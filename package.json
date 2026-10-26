@@ -51,6 +51,16 @@
         "default": "./dist/server.cjs"
       }
     },
+    "./pwned": {
+      "import": {
+        "types": "./dist/pwned.d.mts",
+        "default": "./dist/pwned.mjs"
+      },
+      "require": {
+        "types": "./dist/pwned.d.cts",
+        "default": "./dist/pwned.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -154,6 +164,12 @@
       "path": "dist/server.mjs",
       "import": "*",
       "limit": "3 kB"
+    },
+    {
+      "name": "@virastack/password/pwned",
+      "path": "dist/pwned.mjs",
+      "import": "*",
+      "limit": "1 kB"
     }
   ],
   "pnpm": {
