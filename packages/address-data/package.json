@@ -1,0 +1,83 @@
+{
+  "name": "@virastack/address-data",
+  "version": "0.0.0",
+  "description": "Turkish province, district and neighbourhood data with postal codes, chunked per province",
+  "author": {
+    "name": "Ömer Gülçiçek (ViraStack)",
+    "email": "iletisim@omergulcicek.com",
+    "url": "https://omergulcicek.com"
+  },
+  "license": "MIT",
+  "homepage": "https://virastack.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/virastack/form.git",
+    "directory": "packages/address-data"
+  },
+  "bugs": {
+    "url": "https://github.com/virastack/form/issues/new?labels=pkg%3Aaddress-data"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./provinces/*": "./data/provinces/*.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "data"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs && tsup && node ../mask/scripts/cjs-types.mjs",
+    "data:build": "node scripts/build.mjs",
+    "test": "vitest run --project unit",
+    "test:coverage": "vitest run --project unit --coverage",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+  },
+  "keywords": [
+    "virastack",
+    "turkey",
+    "turkiye",
+    "postal-code",
+    "posta-kodu",
+    "il",
+    "ilce",
+    "mahalle",
+    "province",
+    "district",
+    "neighbourhood",
+    "address",
+    "dataset"
+  ],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "@eslint/js": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:"
+  }
+}

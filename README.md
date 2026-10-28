@@ -2,70 +2,72 @@
 
 # ViraStack Form
 
-**Türkiye'ye özel, erişilebilir React form primitifleri.**
+**Accessible React form primitives built for Türkiye.**
 
-Maskeler, şifre akışları ve adres seçimi — hepsi headless, hepsi TypeScript.
+Input masks, password flows and address selection — headless, typed, framework-agnostic.
 
 </div>
 
-## Paketler
+## Packages
 
-| Paket | Sürüm | Ne yapar |
+| Package | Version | What it does |
 | --- | --- | --- |
-| [`@virastack/mask`](packages/mask) | [![npm](https://img.shields.io/npm/v/@virastack/mask.svg)](https://www.npmjs.com/package/@virastack/mask) | React Hook Form için sıfır konfigürasyonlu input maskeleri; TC, VKN, IBAN, telefon, kart ve para birimi doğrulayıcıları, sunucu desteği |
-| [`@virastack/password`](packages/password) | [![npm](https://img.shields.io/npm/v/@virastack/password.svg)](https://www.npmjs.com/package/@virastack/password) | Erişilebilir şifre hook'u: görünürlük, NIST ölçütlü güç hesabı, onay alanı, sunucu doğrulaması ve sızmış şifre kontrolü |
-
-## Kurulum
+| [`@virastack/mask`](packages/mask) | [![npm](https://img.shields.io/npm/v/@virastack/mask.svg)](https://www.npmjs.com/package/@virastack/mask) | Zero-config input masks for React Hook Form, with Turkish validators (TCKN, VKN, IBAN, phone, card, currency) and server support |
+| [`@virastack/password`](packages/password) | [![npm](https://img.shields.io/npm/v/@virastack/password.svg)](https://www.npmjs.com/package/@virastack/password) | Accessible password hook: visibility, NIST-style strength, confirmation, server validation and leaked password checks |
 
 ```bash
 pnpm add @virastack/mask
 pnpm add @virastack/password
 ```
 
-Her paket bağımsız sürümlenir ve tek tek kurulur. Birini kullanmak diğerini getirmez.
+Each package is versioned and installed on its own. Using one does not pull in the others.
 
-## Monorepo
+## Repository layout
 
 ```
 packages/
-├── mask/      → @virastack/mask
-└── password/  → @virastack/password
+├── mask/          → @virastack/mask
+├── password/      → @virastack/password
+├── address/       → @virastack/address (unreleased)
+└── address-data/  → @virastack/address-data (unreleased)
 ```
 
-Ortak altyapı kökte durur: `tsconfig.base.json`, `eslint.config.base.mjs` ve
-`pnpm-workspace.yaml` içindeki katalog (araç sürümleri için tek kaynak).
+Shared infrastructure lives at the root: `tsconfig.base.json`,
+`eslint.config.base.mjs`, and the catalog in `pnpm-workspace.yaml` that keeps one
+version of every build tool.
 
 ```bash
-pnpm install        # tüm workspace
-pnpm build          # tüm paketler
-pnpm test           # tüm testler
-pnpm check          # typecheck + lint + coverage + build + paket kontrolü + boyut
+pnpm install        # whole workspace
+pnpm build          # every package
+pnpm test           # every test
+pnpm check          # typecheck + lint + coverage + build + package checks + size
 ```
 
-Tek pakette çalışmak için:
+Working on one package:
 
 ```bash
 pnpm --filter @virastack/mask test
 pnpm --filter @virastack/password build
 ```
 
-### Sürüm çıkarma
+## Releasing
 
-[Changesets](https://github.com/changesets/changesets) ile, paket bazlı:
+Per package, with [Changesets](https://github.com/changesets/changesets):
 
 ```bash
-pnpm changeset      # değişikliği ve bump türünü anlat
-pnpm version        # sürümleri ve CHANGELOG'ları güncelle
-pnpm release        # build + yalnızca değişen paketleri yayınla
+pnpm changeset      # describe the change and pick the bump
+pnpm version        # apply versions and changelogs
+pnpm release        # build, then publish only what changed
 ```
 
-Bir pakette sürüm çıkmak diğerlerini etkilemez.
+Releasing one package leaves the others untouched.
 
-## Katkı
+## Contributing
 
-Issue açarken paketi `pkg:mask` / `pkg:password` etiketiyle belirt — paket
-README'lerindeki "Bug bildir" bağlantıları bunu kendiliğinden ekler.
+Label issues with the package they belong to — `pkg:mask`, `pkg:password`,
+`pkg:address`, `pkg:address-data`. The "report a bug" links in each package README add the
+label for you.
 
-## Lisans
+## License
 
 [MIT](LICENSE) © [Ömer Gülçiçek](https://omergulcicek.com)

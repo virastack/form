@@ -1,0 +1,174 @@
+{
+  "name": "@virastack/address",
+  "version": "0.0.0",
+  "description": "Headless Turkish address hook for React: province, district and neighbourhood with postal code, React Hook Form ready",
+  "author": {
+    "name": "Ömer Gülçiçek (ViraStack)",
+    "email": "iletisim@omergulcicek.com",
+    "url": "https://omergulcicek.com"
+  },
+  "license": "MIT",
+  "homepage": "https://virastack.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/virastack/form.git",
+    "directory": "packages/address"
+  },
+  "bugs": {
+    "url": "https://github.com/virastack/form/issues/new?labels=pkg%3Aaddress"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./rhf": {
+      "import": {
+        "types": "./dist/rhf.d.mts",
+        "default": "./dist/rhf.mjs"
+      },
+      "require": {
+        "types": "./dist/rhf.d.cts",
+        "default": "./dist/rhf.cjs"
+      }
+    },
+    "./server": {
+      "import": {
+        "types": "./dist/server.d.mts",
+        "default": "./dist/server.mjs"
+      },
+      "require": {
+        "types": "./dist/server.d.cts",
+        "default": "./dist/server.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup && node ../mask/scripts/cjs-types.mjs",
+    "dev": "tsup --watch",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:coverage": "vitest run --project unit --coverage",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "size": "size-limit",
+    "check:package": "publint --strict && attw --pack . --profile node16",
+    "check": "pnpm typecheck && pnpm lint && pnpm test:coverage && pnpm build && pnpm check:package && pnpm size"
+  },
+  "keywords": [
+    "virastack",
+    "react",
+    "hook",
+    "address",
+    "adres",
+    "turkey",
+    "turkiye",
+    "province",
+    "district",
+    "neighbourhood",
+    "il",
+    "ilce",
+    "mahalle",
+    "city",
+    "postal-code",
+    "posta-kodu",
+    "zipcode",
+    "react-hook-form",
+    "headless",
+    "typescript"
+  ],
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-hook-form": ">=7.55.0"
+  },
+  "peerDependenciesMeta": {
+    "react-hook-form": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@virastack/address-data": "workspace:^"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "@eslint/js": "catalog:",
+    "@size-limit/preset-small-lib": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "jsdom": "catalog:",
+    "publint": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-hook-form": "catalog:",
+    "size-limit": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "size-limit": [
+    {
+      "name": "@virastack/address",
+      "path": "dist/index.mjs",
+      "import": "*",
+      "limit": "4 kB",
+      "ignore": [
+        "react",
+        "@virastack/address-data"
+      ]
+    },
+    {
+      "name": "@virastack/address/rhf",
+      "path": "dist/rhf.mjs",
+      "import": "*",
+      "limit": "4 kB",
+      "ignore": [
+        "react",
+        "react-hook-form",
+        "@virastack/address-data"
+      ]
+    },
+    {
+      "name": "@virastack/address/server",
+      "path": "dist/server.mjs",
+      "import": "*",
+      "limit": "2 kB",
+      "ignore": [
+        "@virastack/address-data"
+      ]
+    },
+    {
+      "name": "dataset (every province, if a bundler refuses to split)",
+      "path": "../address-data/dist/index.mjs",
+      "import": "*",
+      "limit": "450 kB"
+    }
+  ]
+}
