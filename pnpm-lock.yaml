@@ -38,6 +38,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
+      '@virastack/mask':
+        specifier: ^2.0.0
+        version: 2.0.0(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)
       '@vitest/browser-playwright':
         specifier: 5.0.5
         version: 5.0.5(playwright@1.64.1)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2))(vitest@5.0.5)
@@ -916,6 +919,13 @@ packages:
   '@typescript-eslint/visitor-keys@8.72.0':
     resolution: {integrity: sha512-E2mroviasaWecDzTGiGMtuEguuLVOeRggnrIn93CJuxYJzQBHbyymlT08aVQydbBal5538o+JkBKXh2sRuCyIA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@virastack/mask@2.0.0':
+    resolution: {integrity: sha512-QQuvro77RxJRptcOMHdbpdYLWbqsIFmvsI/3nUFH+zBGNXVfGzj6IlnP2dwgThzzbNUwOvAGhFvznsnqOITPtQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=18.2.0'
+      react-hook-form: '>=7.55.0'
 
   '@vitest/browser-playwright@5.0.5':
     resolution: {integrity: sha512-lcdThFUUcMV9mGGV1SUiZXPxfjgW4CssA7o3STxzh8WK0tT2r526kc12tZIBRZfoLMwkhxjLmMXkWXONzdsDQw==}
@@ -2882,6 +2892,11 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.72.0
       eslint-visitor-keys: 5.0.1
+
+  '@virastack/mask@2.0.0(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      react: 19.3.1
+      react-hook-form: 7.91.0(@types/react@19.3.0)(react@19.3.1)
 
   '@vitest/browser-playwright@5.0.5(playwright@1.64.1)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2))(vitest@5.0.5)':
     dependencies:

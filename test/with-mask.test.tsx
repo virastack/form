@@ -1,6 +1,5 @@
 // Phone (@virastack/mask v2) + password + confirm in one React Hook Form.
-// Runs when ../mask exists (mask v2 is not published yet); skipped otherwise, e.g. in CI.
-// vitest.config.mts points "@virastack/mask" at ../mask/src; test/mask.d.ts types the part used here.
+// The README pairs the two packages, so the pairing is tested against the published mask.
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm, type UseFormReturn } from "react-hook-form";
@@ -14,7 +13,7 @@ type Values = { phone: string; password: string; confirm: string };
 const policy = definePolicy();
 const STRONG = "vu7#Kq2!mz9@Lw4X";
 
-describe.skipIf(!process.env.VIRASTACK_MASK)("with @virastack/mask v2", () => {
+describe("with @virastack/mask v2", () => {
   let form!: UseFormReturn<Values>;
   function Signup() {
     form = useForm<Values>({ defaultValues: { phone: "", password: "", confirm: "" }, mode: "onChange" });

@@ -1,15 +1,9 @@
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 
-// mask v2 is not on npm yet: the combined test runs when the mask repo sits next to this one.
-const maskSource = fileURLToPath(new URL("../mask/src/index.ts", import.meta.url));
-const hasMask = existsSync(maskSource);
-
 export default defineConfig({
   resolve: {
-    alias: { "@virastack/mask": hasMask ? maskSource : fileURLToPath(new URL("test/mask-missing.ts", import.meta.url)) },
+    // Both packages pull these in; one copy keeps hooks and context identical.
     dedupe: ["react", "react-dom", "react-hook-form"],
   },
   test: {
@@ -26,7 +20,6 @@ export default defineConfig({
           include: ["test/**/*.test.{ts,tsx}"],
           exclude: ["test/browser/**"],
           setupFiles: ["test/setup.ts"],
-          env: { VIRASTACK_MASK: hasMask ? "1" : "" },
         },
       },
       {
