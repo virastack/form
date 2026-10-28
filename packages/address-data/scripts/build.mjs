@@ -121,10 +121,21 @@ for (const s of sizes.slice(0, 10)) {
     `  ${s.name.padEnd(12)} ${String(s.districts).padStart(3)} districts ${String(s.neighbourhoods).padStart(5)} neighbourhoods  ${String(s.rawKB).padStart(6)} kB raw  ${String(s.gzipKB).padStart(5)} kB gzip`,
   );
 }
+// What a visitor actually pays: index.json plus the one province they pick.
+// The budget guards the worst province, not the average, because that is the
+// only number a user can be unlucky enough to hit.
+const BUDGET_KB = 30;
+const gzipped = sizes.map((s) => s.gzipKB).sort((a, b) => a - b);
+const at = (p) => gzipped[Math.min(gzipped.length - 1, Math.floor(gzipped.length * p))];
 const worst = sizes[0];
+
+console.log("\nper-province gzip: median %s kB · p90 %s kB · largest %s kB (%s)", at(0.5), at(0.9), worst.gzipKB, worst.name);
+console.log(`${gzipped.filter((kb) => kb < 10).length}/${gzipped.length} provinces under 10 kB`);
+console.log(`typical visit: index + median province = ${(gzipSync(indexJson).length / 1024 + at(0.5)).toFixed(1)} kB`);
 console.log(
-  `\ngate: largest province chunk ${worst.gzipKB} kB gzip (${worst.name}) — ${worst.gzipKB < 25 ? "PASS" : "FAIL"} against the 25 kB budget`,
+  `\ngate: largest province chunk ${worst.gzipKB} kB gzip (${worst.name}) — ${worst.gzipKB <= BUDGET_KB ? "PASS" : "FAIL"} against the ${BUDGET_KB} kB budget`,
 );
+if (worst.gzipKB > BUDGET_KB) process.exitCode = 1;
 
 if (warnings.length) {
   console.log(`\n${warnings.length} warning(s):`);

@@ -33,8 +33,27 @@ the build reduces it to unique neighbourhoods with their postal code. Each
 province ships as a single encoded string instead of nested JSON: it is smaller
 over the wire, and splitting a string beats parsing an array of objects.
 
-Every neighbourhood carries exactly one postal code; the build warns if that
-ever stops being true.
+Most neighbourhoods carry one postal code. A few hundred carry several — up to
+eight — and all of them are kept, so `postalCodes` is the honest answer and
+`postalCode` is the first one for the common case.
+
+## What it costs
+
+81 provinces, 973 districts, 72,466 neighbourhoods.
+
+| | gzip |
+| --- | --- |
+| `index.json`, bundled | 5.3 kB |
+| One province, median | 4.6 kB |
+| One province, p90 | 9.2 kB |
+| One province, largest (Kastamonu, 4,318 settlements) | 28.5 kB |
+
+75 of 81 provinces are under 10 kB, so a typical visit downloads about **10 kB**
+— the index plus the province that was picked. Rural provinces with thousands
+of villages are the outliers, not the big cities: İstanbul is far from the worst.
+
+The build fails if the largest province passes 30 kB, so a data refresh cannot
+quietly make the payload worse.
 
 ## Reading the data somewhere else
 
