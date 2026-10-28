@@ -1,7 +1,7 @@
 {
   "name": "@virastack/address",
   "version": "0.0.0",
-  "description": "Headless Turkish address hook for React: province, district and neighbourhood with postal code, React Hook Form ready",
+  "description": "Headless Turkish address hook for React: province, district and neighbourhood with postal code, plus the dataset behind it",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",
@@ -32,6 +32,16 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./data": {
+      "import": {
+        "types": "./dist/data.d.mts",
+        "default": "./dist/data.mjs"
+      },
+      "require": {
+        "types": "./dist/data.d.cts",
+        "default": "./dist/data.cjs"
+      }
+    },
     "./rhf": {
       "import": {
         "types": "./dist/rhf.d.mts",
@@ -55,7 +65,9 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "data/load.mjs",
+    "data/provinces"
   ],
   "sideEffects": false,
   "publishConfig": {
@@ -74,7 +86,8 @@
     "lint": "eslint .",
     "size": "size-limit",
     "check:package": "publint --strict && attw --pack . --profile node16",
-    "check": "pnpm typecheck && pnpm lint && pnpm test:coverage && pnpm build && pnpm check:package && pnpm size"
+    "check": "pnpm typecheck && pnpm lint && pnpm test:coverage && pnpm build && pnpm check:package && pnpm size",
+    "data:build": "node scripts/build-data.mjs"
   },
   "keywords": [
     "virastack",
@@ -96,6 +109,7 @@
     "zipcode",
     "react-hook-form",
     "headless",
+    "dataset",
     "typescript"
   ],
   "peerDependencies": {
@@ -103,12 +117,12 @@
     "react-hook-form": ">=7.55.0"
   },
   "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
     "react-hook-form": {
       "optional": true
     }
-  },
-  "dependencies": {
-    "@virastack/address-data": "workspace:^"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:",
@@ -135,38 +149,47 @@
   },
   "size-limit": [
     {
-      "name": "@virastack/address",
+      "name": "@virastack/address (hook + province and district names)",
       "path": "dist/index.mjs",
       "import": "*",
-      "limit": "4 kB",
+      "limit": "7.5 kB",
       "ignore": [
         "react",
-        "@virastack/address-data"
+        "../data/load.mjs"
       ]
     },
     {
       "name": "@virastack/address/rhf",
       "path": "dist/rhf.mjs",
       "import": "*",
-      "limit": "4 kB",
+      "limit": "8 kB",
       "ignore": [
         "react",
         "react-hook-form",
-        "@virastack/address-data"
+        "../data/load.mjs"
       ]
     },
     {
       "name": "@virastack/address/server",
       "path": "dist/server.mjs",
       "import": "*",
-      "limit": "2 kB",
+      "limit": "6.5 kB",
       "ignore": [
-        "@virastack/address-data"
+        "../data/load.mjs"
       ]
     },
     {
-      "name": "dataset (every province, if a bundler refuses to split)",
-      "path": "../address-data/dist/index.mjs",
+      "name": "@virastack/address/data",
+      "path": "dist/data.mjs",
+      "import": "*",
+      "limit": "6 kB",
+      "ignore": [
+        "../data/load.mjs"
+      ]
+    },
+    {
+      "name": "every province, if a bundler refuses to split",
+      "path": "dist/data.mjs",
       "import": "*",
       "limit": "450 kB"
     }

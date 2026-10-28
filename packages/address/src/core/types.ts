@@ -33,8 +33,8 @@ export interface AddressNeighbourhood {
 }
 
 /**
- * Where the lists come from. The default reads @virastack/address-data; swap it
- * for a fixture in tests, or for your own endpoint.
+ * Where the lists come from. The default reads `@virastack/address/data`; swap
+ * it for a fixture in tests, or for your own endpoint.
  */
 export interface AddressSource {
   readonly provinces: readonly AddressProvince[];

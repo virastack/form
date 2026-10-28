@@ -1,4 +1,5 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { useViraAddress } from "../src/index.js";
@@ -100,6 +101,29 @@ describe("useViraAddress", () => {
     expect(result.current.neighbourhoods.map((n) => n.value)).toEqual(["AKKAPI MAH."]);
   });
 
+  it("never shows the previous province's list for a district both have", async () => {
+    const { source, pending } = makeDeferredSource();
+    const twoMerkez = {
+      ...source,
+      provinces: [
+        { code: 2, name: "ADIYAMAN", districts: ["MERKEZ"] },
+        { code: 3, name: "AFYONKARAHİSAR", districts: ["MERKEZ"] },
+      ],
+    };
+    const { result } = renderHook(() => useViraAddress({ source: twoMerkez }));
+
+    act(() => result.current.setProvince(2));
+    await act(async () => {
+      pending[0].resolve(new Map([["MERKEZ", [{ name: "ALTINŞEHİR MAH.", postalCode: "02040", postalCodes: ["02040"] }]]]));
+    });
+
+    // Afyonkarahisar is still loading; Adıyaman's MERKEZ must not stand in for it.
+    act(() => result.current.setProvince(3));
+    act(() => result.current.setDistrict("MERKEZ"));
+    expect(result.current.neighbourhoods).toEqual([]);
+    expect(result.current.getNeighbourhoodProps()["aria-busy"]).toBe(true);
+  });
+
   it("surfaces a failed load", async () => {
     const source = makeSource({ neighbourhoods: async () => { throw new Error("offline"); } });
     const { result } = renderHook(() => useViraAddress({ source }));
@@ -190,6 +214,42 @@ describe("prop getters", () => {
 
     const antd = result.current.getProvinceProps({ as: "antd" });
     expect(antd).toMatchObject({ showSearch: true, optionFilterProp: "label" });
+    // antd only shows the placeholder for an undefined value.
+    expect(antd.value).toBeUndefined();
+  });
+
+  it("filters antd options the Turkish way", () => {
+    const { result } = renderHook(() => useViraAddress({ source }));
+    const filter = result.current.getProvinceProps({ as: "antd" }).filterOption as (
+      input: string,
+      option?: { label?: unknown },
+    ) => boolean;
+
+    expect(filter("istanbul", { label: "İstanbul" })).toBe(true);
+    expect(filter("ADIYA", { label: "Adıyaman" })).toBe(true);
+    expect(filter("adana", { label: "İstanbul" })).toBe(false);
+  });
+
+  it("renders a working native select on its own", async () => {
+    function Fields() {
+      const address = useViraAddress({ source });
+      return (
+        <>
+          <select data-testid="province" {...address.getProvinceProps({ as: "native" })} />
+          <select data-testid="district" {...address.getDistrictProps({ as: "native" })} />
+        </>
+      );
+    }
+    render(<Fields />);
+    const province = screen.getByTestId<HTMLSelectElement>("province");
+    const district = screen.getByTestId<HTMLSelectElement>("district");
+
+    expect([...province.options].map((o) => o.text)).toEqual(["İl seçiniz", "Adana", "Adıyaman", "İstanbul"]);
+    expect(district.disabled).toBe(true);
+
+    await userEvent.selectOptions(province, "34");
+    expect(province.value).toBe("34");
+    expect([...district.options].map((o) => o.value)).toEqual(["", "FATİH", "KADIKÖY"]);
   });
 
   it("accepts a change event as well as a bare value", () => {

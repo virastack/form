@@ -1,4 +1,4 @@
-import { provinces as dataProvinces, neighbourhoods as dataNeighbourhoods } from "@virastack/address-data";
+import { neighbourhoods as dataNeighbourhoods, provinces as dataProvinces } from "../data.js";
 
 import type { AddressSource } from "./types.js";
 

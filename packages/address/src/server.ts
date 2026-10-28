@@ -1,4 +1,4 @@
-import { provinces, neighbourhoods as loadNeighbourhoods } from "@virastack/address-data";
+import { neighbourhoods as loadNeighbourhoods, provinces } from "./data.js";
 
 import { compareTr, foldTr } from "./core/format.js";
 import type { AddressValue } from "./core/types.js";
@@ -30,12 +30,14 @@ const EMPTY: AddressValue = {
   postalCodes: [],
 };
 
-/** Look a province up by plate code, or by name however it was cased. */
+/**
+ * Look a province up by plate code, written as 6, "6" or "06", or by name
+ * however it was cased.
+ */
 export function findProvince(input: string | number | null | undefined) {
   if (input == null || input === "") return undefined;
-  const asText = String(input);
-  const byCode = provinces.find((p) => String(p.code) === asText);
-  if (byCode) return byCode;
+  const asText = String(input).trim();
+  if (/^\d+$/.test(asText)) return provinces.find((p) => p.code === Number(asText));
   const folded = foldTr(asText);
   return provinces.find((p) => foldTr(p.name) === folded);
 }
@@ -46,10 +48,12 @@ export function findProvince(input: string | number | null | undefined) {
  */
 export async function resolveAddress(input: AddressInput): Promise<AddressResult> {
   const issues: AddressIssue[] = [];
-  const province = findProvince(input.provinceCode ?? input.province);
+  // An empty field from a form counts as not sent, so the name still gets a say.
+  const asked = input.provinceCode || input.province;
+  const province = findProvince(asked);
 
   if (!province) {
-    issues.push({ level: "province", reason: input.provinceCode ?? input.province ? "unknown" : "missing" });
+    issues.push({ level: "province", reason: asked ? "unknown" : "missing" });
     return { ok: false, value: EMPTY, issues };
   }
 
@@ -60,7 +64,7 @@ export async function resolveAddress(input: AddressInput): Promise<AddressResult
     return { ok: false, value, issues };
   }
 
-  const district = province.districts.find((d) => foldTr(d) === foldTr(input.district ?? ""));
+  const district = province.districts.find((d) => foldTr(d) === foldTr(input.district?.trim() ?? ""));
   if (!district) {
     issues.push({ level: "district", reason: "unknown" });
     return { ok: false, value, issues };
@@ -74,7 +78,7 @@ export async function resolveAddress(input: AddressInput): Promise<AddressResult
   }
 
   const list = (await loadNeighbourhoods(province.code)).get(district) ?? [];
-  const match = list.find((n) => foldTr(n.name) === foldTr(input.neighbourhood ?? ""));
+  const match = list.find((n) => foldTr(n.name) === foldTr(input.neighbourhood?.trim() ?? ""));
   if (!match) {
     issues.push({ level: "neighbourhood", reason: "unknown" });
     return { ok: false, value: withDistrict, issues };

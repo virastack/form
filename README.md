@@ -14,10 +14,12 @@ Input masks, password flows and address selection — headless, typed, framework
 | --- | --- | --- |
 | [`@virastack/mask`](packages/mask) | [![npm](https://img.shields.io/npm/v/@virastack/mask.svg)](https://www.npmjs.com/package/@virastack/mask) | Zero-config input masks for React Hook Form, with Turkish validators (TCKN, VKN, IBAN, phone, card, currency) and server support |
 | [`@virastack/password`](packages/password) | [![npm](https://img.shields.io/npm/v/@virastack/password.svg)](https://www.npmjs.com/package/@virastack/password) | Accessible password hook: visibility, NIST-style strength, confirmation, server validation and leaked password checks |
+| [`@virastack/address`](packages/address) | [![npm](https://img.shields.io/npm/v/@virastack/address.svg)](https://www.npmjs.com/package/@virastack/address) | Headless province, district and neighbourhood hook with derived postal codes, server validation and the PTT dataset behind it |
 
 ```bash
 pnpm add @virastack/mask
 pnpm add @virastack/password
+pnpm add @virastack/address
 ```
 
 Each package is versioned and installed on its own. Using one does not pull in the others.
@@ -28,8 +30,7 @@ Each package is versioned and installed on its own. Using one does not pull in t
 packages/
 ├── mask/          → @virastack/mask
 ├── password/      → @virastack/password
-├── address/       → @virastack/address (unreleased)
-└── address-data/  → @virastack/address-data (unreleased)
+└── address/       → @virastack/address (unreleased)
 ```
 
 Shared infrastructure lives at the root: `tsconfig.base.json`,
@@ -65,8 +66,8 @@ Releasing one package leaves the others untouched.
 ## Contributing
 
 Label issues with the package they belong to — `pkg:mask`, `pkg:password`,
-`pkg:address`, `pkg:address-data`. The "report a bug" links in each package README add the
-label for you.
+`pkg:address`. The "report a bug" links in each package README add the label for
+you.
 
 ## License
 

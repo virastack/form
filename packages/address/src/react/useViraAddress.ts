@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createElement, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { compareTr, titleCaseTr } from "../core/format.js";
+import { compareTr, foldTr, titleCaseTr } from "../core/format.js";
 import { defaultSource } from "../core/source.js";
 import type {
   AddressLevel,
@@ -83,6 +83,10 @@ function sameAddress(a: AddressValue, b: AddressValue): boolean {
   );
 }
 
+// antd's own filter lower-cases "İ" to "i̇", so "istanbul" would never match.
+const filterTr = (input: string, option?: { label?: unknown }): boolean =>
+  foldTr(String(option?.label ?? "")).includes(foldTr(input));
+
 /** Pull a plain value out of whatever a select hands back. */
 function readValue(next: unknown): string {
   if (typeof next === "string") return next;
@@ -102,7 +106,12 @@ export function useViraAddress(options: UseViraAddressOptions = {}): UseViraAddr
   );
   const [district, setDistrictState] = useState<string | null>(defaultValue?.district ?? null);
   const [neighbourhood, setNeighbourhoodState] = useState<string | null>(defaultValue?.neighbourhood ?? null);
-  const [byDistrict, setByDistrict] = useState<ReadonlyMap<string, readonly AddressNeighbourhood[]> | null>(null);
+  // Tagged with the province it belongs to, so a district name that exists in
+  // two provinces ("MERKEZ") never shows the previous province's list.
+  const [loaded, setLoaded] = useState<{
+    code: number;
+    byDistrict: ReadonlyMap<string, readonly AddressNeighbourhood[]>;
+  } | null>(null);
   const [loadingNeighbourhoods, setLoadingNeighbourhoods] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -129,6 +138,9 @@ export function useViraAddress(options: UseViraAddressOptions = {}): UseViraAddr
     [province, formatLabel],
   );
 
+  const activeCode = province?.code ?? null;
+  const byDistrict = loaded && loaded.code === activeCode ? loaded.byDistrict : null;
+
   const neighbourhoodOptions = useMemo<readonly NeighbourhoodOption[]>(() => {
     if (!byDistrict || !district) return [];
     return (byDistrict.get(district) ?? []).map((n) => ({
@@ -145,26 +157,23 @@ export function useViraAddress(options: UseViraAddressOptions = {}): UseViraAddr
   sourceRef.current = source;
 
   // One request per province, and a stale response never lands on a newer pick.
-  const activeCode = province?.code ?? null;
   const requestRef = useRef(0);
   useEffect(() => {
+    const ticket = ++requestRef.current;
+    setError(null);
     if (activeCode == null) {
-      setByDistrict(null);
       setLoadingNeighbourhoods(false);
       return;
     }
-    const ticket = ++requestRef.current;
     setLoadingNeighbourhoods(true);
-    setError(null);
     sourceRef.current
       .neighbourhoods(activeCode)
       .then((map) => {
         if (ticket !== requestRef.current) return;
-        setByDistrict(map);
+        setLoaded({ code: activeCode, byDistrict: map });
       })
       .catch((cause: unknown) => {
         if (ticket !== requestRef.current) return;
-        setByDistrict(null);
         setError(cause instanceof Error ? cause : new Error(String(cause)));
       })
       .finally(() => {
@@ -244,12 +253,20 @@ export function useViraAddress(options: UseViraAddressOptions = {}): UseViraAddr
         return { ...rest, onValueChange: handler };
       }
       if (flavour === "native") {
-        const { options: _options, loading: _loading, placeholder: _placeholder, ...rest } = base;
-        return { ...rest, children: undefined };
+        // A native select takes its options as children; the empty first one
+        // is the placeholder and lets the user clear the level again.
+        const { options, loading: _loading, placeholder, ...rest } = base;
+        return {
+          ...rest,
+          children: [
+            createElement("option", { key: "", value: "" }, placeholder),
+            ...options.map((o) => createElement("option", { key: o.value, value: o.value }, o.label)),
+          ],
+        };
       }
       if (flavour === "antd") {
-        const { placeholder, ...rest } = base;
-        return { ...rest, placeholder, showSearch: true, optionFilterProp: "label" };
+        // antd shows the placeholder only while the value is undefined.
+        return { ...base, value: base.value || undefined, showSearch: true, optionFilterProp: "label", filterOption: filterTr };
       }
       return base as unknown as Record<string, unknown>;
     },
