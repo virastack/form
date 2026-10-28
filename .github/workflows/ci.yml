@@ -79,5 +79,5 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm add -D react-hook-form@beta
-      - run: pnpm test
+      - run: pnpm --filter @virastack/mask add -D react-hook-form@beta
+      - run: pnpm --filter @virastack/mask test

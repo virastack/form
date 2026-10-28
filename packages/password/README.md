@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://github.com/virastack/password" target="_blank" rel="noreferrer">
+<a href="https://github.com/virastack/form/tree/main/packages/password" target="_blank" rel="noreferrer">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/password/main/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/password/main/assets/logo-light.png">
-    <img src="https://raw.githubusercontent.com/virastack/password/main/assets/logo-light.png" alt="ViraStack Password" height="120" style="max-width: 100%;" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png">
+    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png" alt="ViraStack Password" height="120" style="max-width: 100%;" />
   </picture>
 </a>
 
@@ -13,7 +13,7 @@
 [![ViraStack Password](https://img.shields.io/badge/ViraStack-Password-%23ff2056)](https://virastack.com/password/)
 [![npm version](https://img.shields.io/npm/v/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
 [![npm downloads](https://img.shields.io/npm/dt/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/password/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
 [![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
@@ -116,7 +116,7 @@ Returns `{ inputProps, btnProps, isVisible, toggle, setVisible, capsLock, streng
 
 ## With ViraStack Mask
 
-[ViraStack Mask](https://github.com/virastack/mask) v2 also keeps values in React Hook Form, so both share one `useForm`. Use them on different inputs; to put a toggle on a masked field (a PIN), spread the mask field and `inputProps` together:
+[ViraStack Mask](https://github.com/virastack/form/tree/main/packages/mask) v2 also keeps values in React Hook Form, so both share one `useForm`. Use them on different inputs; to put a toggle on a masked field (a PIN), spread the mask field and `inputProps` together:
 
 ```tsx
 const { pin } = useViraMask(form, { pin: { mask: "999999" } });
@@ -178,7 +178,7 @@ Only the first 5 characters of the SHA-1 hash are sent. On any failure the statu
 
 ## Ecosystem
 
-Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Mask](https://github.com/virastack/mask) · [Guide](https://github.com/virastack/guide)
+Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Mask](https://github.com/virastack/form/tree/main/packages/mask) · [Guide](https://github.com/virastack/guide)
 
 ## License
 

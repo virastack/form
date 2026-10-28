@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://github.com/virastack/mask" target="_blank" rel="noreferrer">
+<a href="https://github.com/virastack/form/tree/main/packages/mask" target="_blank" rel="noreferrer">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/mask/main/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/mask/main/assets/logo-light.png">
-    <img src="https://raw.githubusercontent.com/virastack/mask/main/assets/logo-light.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png">
+    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
   </picture>
 </a>
 
@@ -13,7 +13,7 @@
 [![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23615fff)](https://virastack.com/mask/)
 [![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
 [![npm downloads](https://img.shields.io/npm/dt/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/mask/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
 [![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
@@ -145,7 +145,7 @@ Upgrading from v1? See [MIGRATION.md](MIGRATION.md).
 
 ## Ecosystem
 
-Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Password](https://github.com/virastack/password) · [Guide](https://github.com/virastack/guide)
+Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Password](https://github.com/virastack/form/tree/main/packages/password) · [Guide](https://github.com/virastack/guide)
 
 ## License
 
