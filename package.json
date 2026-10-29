@@ -20,12 +20,9 @@
     "check:package": "pnpm -r check:package",
     "check": "pnpm -r check",
     "e2e:next": "pnpm -r e2e:next",
-    "changeset": "changeset",
-    "version": "changeset version",
-    "release": "pnpm -r build && changeset publish"
+    "release": "pnpm -r publish --access public"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.3",
     "@eslint/js": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

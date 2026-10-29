@@ -1,6 +1,6 @@
----
-"@virastack/address": major
----
+# @virastack/address
+
+## 1.0.0
 
 First release.
 

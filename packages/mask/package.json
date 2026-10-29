@@ -1,6 +1,6 @@
 {
   "name": "@virastack/mask",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",

@@ -69,15 +69,20 @@ pnpm --filter @virastack/password build
 
 ## Releasing
 
-Per package, with [Changesets](https://github.com/changesets/changesets):
+Each package is versioned by hand:
+
+1. Bump `version` in the package's `package.json` and add the release to its `CHANGELOG.md`.
+2. Commit and push to `main`.
+3. Publish from the repository root:
 
 ```bash
-pnpm changeset      # describe the change and pick the bump
-pnpm version        # apply versions and changelogs
-pnpm release        # build, then publish only what changed
+pnpm -r publish --access public
 ```
 
-Releasing one package leaves the others untouched.
+`pnpm -r publish` publishes only the packages whose version is not on npm yet,
+so releasing one package leaves the others untouched. Each package's
+`prepublishOnly` runs `pnpm check` first, so nothing is published without a
+fresh build, passing tests and the size budget.
 
 ## Contributing
 

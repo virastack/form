@@ -1,5 +1,15 @@
 # @virastack/mask
 
+## 2.1.0
+
+### Added
+
+- **Bank from IBAN**: `getTurkishBank(iban)` and `turkishBanks` give the bank behind a Turkish IBAN, read from its bank code, with the full list of TCMB payment system participants (70, last change 18.09.2026). It answers as soon as the bank digits are typed, works with spaces and lowercase, and is on the `/server` entry too. The table is a plain literal, so bundles that never call it do not grow.
+
+### Changed
+
+- **Monorepo**: `@virastack/mask` now lives in [virastack/form](https://github.com/virastack/form) under `packages/mask`. `repository.directory`, the issue link and the README links point there. No code changes.
+
 ## 2.0.0
 
 A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.md).

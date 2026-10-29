@@ -1,5 +1,11 @@
 # @virastack/password
 
+## 1.1.1
+
+### Changed
+
+- **Monorepo**: `@virastack/password` now lives in [virastack/form](https://github.com/virastack/form) under `packages/password`. `repository.directory`, the issue link and the README links point there, and the README images, which pointed at the old repository, show again in the new brand colour. No code changes.
+
 ## 1.1.0
 
 ### Added

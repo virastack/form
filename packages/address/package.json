@@ -1,6 +1,6 @@
 {
   "name": "@virastack/address",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Headless Turkish address hook for React: chained province, district and neighbourhood selects, derived postal codes, server validation and the PTT dataset",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
@@ -77,7 +77,8 @@
     "size": "size-limit",
     "check:package": "publint --strict && attw --pack . --profile node16",
     "check": "pnpm typecheck && pnpm lint && pnpm test:coverage && pnpm build && pnpm check:package && pnpm size",
-    "data:build": "node scripts/build-data.mjs"
+    "data:build": "node scripts/build-data.mjs",
+    "prepublishOnly": "pnpm check"
   },
   "keywords": [
     "virastack",
