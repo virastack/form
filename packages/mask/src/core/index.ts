@@ -9,6 +9,7 @@ export {
   isValidVKN,
   type CardType,
 } from "./validators";
+export { getTurkishBank, turkishBanks, type TurkishBank } from "./banks";
 export { toMinorUnits } from "./money";
 export { parseMasked, type MaskedData, type MaskedInput, type ParseMaskedResult } from "./parseMasked";
 export type { FieldBehavior, FieldConfig, MaskOutput, MaskSchema } from "./schema";

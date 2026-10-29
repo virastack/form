@@ -8,11 +8,11 @@
   </picture>
 </a>
 
-*Zero-config input masks for React Hook Form, with Turkish validators and server support*
+*Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation*
 
-[![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23615fff)](https://virastack.com/mask/)
-[![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
-[![npm downloads](https://img.shields.io/npm/dt/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
+[![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23605efe)](https://virastack.com/mask/)
+[![npm version](https://img.shields.io/npm/v/@virastack/mask?color=605efe)](https://www.npmjs.com/package/@virastack/mask)
+[![npm downloads](https://img.shields.io/npm/dt/@virastack/mask?color=605efe)](https://www.npmjs.com/package/@virastack/mask)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
 [![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
 
@@ -26,9 +26,9 @@
 
 - **Built for React Hook Form:** The form keeps the raw value (`5551234567`); the input shows the mask. `register` rules, `reset`, `setValue`, `watch`, `Controller` and resolvers keep working.
 - **Type-safe:** Field names, `from` links and rules are checked against your form type. No `any`.
-- **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, TRY with kuruş.
+- **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, TRY with kuruş, and the bank behind an IBAN.
 - **Server support:** `@virastack/mask/server` parses and validates the same schema in Server Actions.
-- **Zero dependencies:** ~8 KB min+brotli for everything; less once tree-shaken.
+- **Zero dependencies:** under 10 KB min+brotli for everything; less once tree-shaken.
 
 ## Quick Start
 
@@ -140,6 +140,20 @@ createMask(plate).format("34abc123"); // "34 ABC 123"
 createMask({ preset: "currency", country: "TR" }).format("1234.5"); // "₺1.234,5"
 toMinorUnits("1234.56", "TRY"); // 123456
 ```
+
+### Bank from a Turkish IBAN
+
+```ts
+import { getTurkishBank, turkishBanks } from "@virastack/mask";
+
+getTurkishBank("TR63 0006 2000 0000 0000 1234 56"); // { code: "0062", name: "T. GARANTİ BANKASI A.Ş." }
+getTurkishBank("TR63 0006 2"); // works as soon as the bank digits are typed
+turkishBanks.length; // 70, from the TCMB payment systems participants list
+```
+
+The bank is read from the IBAN's bank code, so there is no API call. It does not
+check the IBAN itself; the `iban` preset and `isValidIBAN` do. See the
+[live demo and full list](https://virastack.com/mask/docs/banks).
 
 Upgrading from v1? See [MIGRATION.md](MIGRATION.md).
 

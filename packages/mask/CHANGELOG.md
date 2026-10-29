@@ -1,6 +1,6 @@
-# Changelog
+# @virastack/mask
 
-## [v2.0.0] - 2026-10-25
+## 2.0.0
 
 A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.md).
 
@@ -37,13 +37,13 @@ A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.
 - CI on Linux, macOS and Windows with Node 20/22/24: typecheck, ESLint (`no-explicit-any`), unit tests, real-browser tests (Chromium), `attw`, `publint`, `size-limit`.
 - ESM and CommonJS builds with `.d.mts` and `.d.cts` types.
 
-## [v1.1.1] - 2026-08-01
+## 1.1.1
 
 ### Documentation
 
 - **README**: Removed the Bundlephobia badge (Shields.io often rate-limits the upstream API on npm).
 
-## [v1.1.0] - 2026-08-01
+## 1.1.0
 
 ### Breaking Changes
 
@@ -63,7 +63,7 @@ A rewrite of the engine, the hook and the presets. See [MIGRATION.md](MIGRATION.
 - **`rawValuesRef` source of truth**: Display formatting and sibling `resolveMask` lookups prefer canonical raw over possibly masked form/DOM values.
 - **`syncDependentRaws`**: After a field updates, sibling fields with `resolveMask` (e.g. CVV) are re-processed immediately.
 
-## [v1.0.0] - 2026-07-22
+## 1.0.0
 
 ### Initial Release
 
