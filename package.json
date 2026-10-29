@@ -2,7 +2,7 @@
   "name": "@virastack/form-monorepo",
   "private": true,
   "type": "module",
-  "description": "ViraStack form paketleri: mask, password ve address",
+  "description": "ViraStack form packages: mask, password and address",
   "license": "MIT",
   "packageManager": "pnpm@10.19.0",
   "engines": {

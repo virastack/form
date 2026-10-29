@@ -2,9 +2,9 @@
 
 # ViraStack Form
 
-**Accessible React form primitives built for Türkiye.**
+**Headless React form hooks: input masks, passwords and Turkish addresses.**
 
-Input masks, password flows and address selection — headless, typed, framework-agnostic.
+Open source, headless and type-safe: each package renders nothing, ships its own types, and leaves inputs and styles to you. Mask and Address check field names against your form's type.
 
 </div>
 
@@ -12,9 +12,9 @@ Input masks, password flows and address selection — headless, typed, framework
 
 | Package | Version | What it does |
 | --- | --- | --- |
-| [`@virastack/mask`](packages/mask) | [![npm](https://img.shields.io/npm/v/@virastack/mask.svg)](https://www.npmjs.com/package/@virastack/mask) | Zero-config input masks for React Hook Form, with Turkish validators (TCKN, VKN, IBAN, phone, card, currency) and server support |
-| [`@virastack/password`](packages/password) | [![npm](https://img.shields.io/npm/v/@virastack/password.svg)](https://www.npmjs.com/package/@virastack/password) | Accessible password hook: visibility, NIST-style strength, confirmation, server validation and leaked password checks |
-| [`@virastack/address`](packages/address) | [![npm](https://img.shields.io/npm/v/@virastack/address.svg)](https://www.npmjs.com/package/@virastack/address) | Headless province, district and neighbourhood hook with derived postal codes, server validation and the PTT dataset behind it |
+| [`@virastack/mask`](packages/mask) | [![npm](https://img.shields.io/npm/v/@virastack/mask.svg?color=605efe)](https://www.npmjs.com/package/@virastack/mask) | Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation |
+| [`@virastack/password`](packages/password) | [![npm](https://img.shields.io/npm/v/@virastack/password.svg?color=f6339a)](https://www.npmjs.com/package/@virastack/password) | Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks |
+| [`@virastack/address`](packages/address) | [![npm](https://img.shields.io/npm/v/@virastack/address.svg?color=fb2c36)](https://www.npmjs.com/package/@virastack/address) | Headless Turkish address hook for React: chained province, district and neighbourhood selects, derived postal codes, server validation and the PTT dataset |
 
 ```bash
 pnpm add @virastack/mask
@@ -23,6 +23,22 @@ pnpm add @virastack/address
 ```
 
 Each package is versioned and installed on its own. Using one does not pull in the others.
+
+## Using them together
+
+All three write into the same React Hook Form. A checkout with a masked TCKN and
+phone, a password and an address fills one set of values:
+
+```tsx
+const form = useForm<Checkout>();
+const { tckn, phone } = useViraMask(form, { tckn: { preset: "tckn" }, phone: { preset: "phone", country: "TR" } });
+const password = useViraPassword({ value: form.watch("password") });
+const address = useViraAddress({ form });
+```
+
+`form.reset()`, `setValue()`, resolvers, `FormProvider`, field arrays and
+StrictMode are covered for all three together in
+[`rhf-scenarios.test.tsx`](packages/address/test/rhf-scenarios.test.tsx).
 
 ## Repository layout
 
