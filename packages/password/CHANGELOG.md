@@ -1,6 +1,6 @@
-# Changelog
+# @virastack/password
 
-## [v1.1.0] - 2026-10-26
+## 1.1.0
 
 ### Added
 
@@ -28,19 +28,19 @@
 - Size budgets with size-limit.
 
 
-## [v1.0.2] - 2026-08-01
+## 1.0.2
 
 ### Documentation
 
 - **README**: Removed the Bundlephobia badge (Shields.io often rate-limits the upstream API on npm).
 
-## [v1.0.1] - 2026-08-01
+## 1.0.1
 
 ### Documentation
 
 - **README logos**: Fixed broken npm README images. Light/dark logo assets now load from `assets/logo-light.png` and `assets/logo-dark.png` via raw GitHub URLs.
 
-## [v1.0.0] - 2026-07-22
+## 1.0.0
 
 ### Initial Release
 

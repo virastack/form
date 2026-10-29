@@ -1,7 +1,7 @@
 {
   "name": "@virastack/password",
   "version": "1.1.0",
-  "description": "Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks.",
+  "description": "Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",

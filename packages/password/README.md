@@ -8,11 +8,11 @@
   </picture>
 </a>
 
-*Accessible password hook for React: visibility, strength, confirmation and server checks*
+*Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks*
 
-[![ViraStack Password](https://img.shields.io/badge/ViraStack-Password-%23ff2056)](https://virastack.com/password/)
-[![npm version](https://img.shields.io/npm/v/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
-[![npm downloads](https://img.shields.io/npm/dt/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
+[![ViraStack Password](https://img.shields.io/badge/ViraStack-Password-%23f6339a)](https://virastack.com/password/)
+[![npm version](https://img.shields.io/npm/v/@virastack/password?color=f6339a)](https://www.npmjs.com/package/@virastack/password)
+[![npm downloads](https://img.shields.io/npm/dt/@virastack/password?color=f6339a)](https://www.npmjs.com/package/@virastack/password)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
 [![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
 
