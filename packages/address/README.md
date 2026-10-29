@@ -1,20 +1,16 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/address" target="_blank" rel="noreferrer">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-light.png">
-    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-light.png" alt="ViraStack Address" height="120" style="max-width: 100%;" />
-  </picture>
+  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo.png" alt="ViraStack Address" height="120" style="max-width: 100%;" />
 </a>
 
 *Headless Turkish address hook for React: chained province, district and neighbourhood selects, derived postal codes, server validation and the PTT dataset*
 
 [![ViraStack Address](https://img.shields.io/badge/ViraStack-Address-%23fb2c36)](https://virastack.com/address/)
-[![npm version](https://img.shields.io/npm/v/@virastack/address?color=fb2c36)](https://www.npmjs.com/package/@virastack/address)
-[![npm downloads](https://img.shields.io/npm/dt/@virastack/address?color=fb2c36)](https://www.npmjs.com/package/@virastack/address)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
-[![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
+[![npm version](https://img.shields.io/npm/v/@virastack/address)](https://www.npmjs.com/package/@virastack/address)
+[![npm downloads](https://img.shields.io/npm/dt/@virastack/address)](https://www.npmjs.com/package/@virastack/address)
+[![License: MIT](https://img.shields.io/github/license/virastack/form)](https://github.com/virastack/form/blob/main/LICENSE)
+[![@virastack](https://img.shields.io/badge/-%40virastack-555?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
 

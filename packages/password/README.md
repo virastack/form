@@ -1,20 +1,16 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/password" target="_blank" rel="noreferrer">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png">
-    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png" alt="ViraStack Password" height="120" style="max-width: 100%;" />
-  </picture>
+  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo.png" alt="ViraStack Password" height="120" style="max-width: 100%;" />
 </a>
 
 *Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks*
 
 [![ViraStack Password](https://img.shields.io/badge/ViraStack-Password-%23f6339a)](https://virastack.com/password/)
-[![npm version](https://img.shields.io/npm/v/@virastack/password?color=f6339a)](https://www.npmjs.com/package/@virastack/password)
-[![npm downloads](https://img.shields.io/npm/dt/@virastack/password?color=f6339a)](https://www.npmjs.com/package/@virastack/password)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
-[![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
+[![npm version](https://img.shields.io/npm/v/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
+[![npm downloads](https://img.shields.io/npm/dt/@virastack/password)](https://www.npmjs.com/package/@virastack/password)
+[![License: MIT](https://img.shields.io/github/license/virastack/form)](https://github.com/virastack/form/blob/main/LICENSE)
+[![@virastack](https://img.shields.io/badge/-%40virastack-555?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
 

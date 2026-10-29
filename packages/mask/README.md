@@ -1,20 +1,16 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/mask" target="_blank" rel="noreferrer">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png">
-    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
-  </picture>
+  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
 </a>
 
 *Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation*
 
 [![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23605efe)](https://virastack.com/mask/)
-[![npm version](https://img.shields.io/npm/v/@virastack/mask?color=605efe)](https://www.npmjs.com/package/@virastack/mask)
-[![npm downloads](https://img.shields.io/npm/dt/@virastack/mask?color=605efe)](https://www.npmjs.com/package/@virastack/mask)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/virastack/form/blob/main/LICENSE)
-[![@virastack](https://img.shields.io/badge/-%40virastack-black?logo=x&logoColor=white)](https://x.com/virastack)
+[![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
+[![npm downloads](https://img.shields.io/npm/dt/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
+[![License: MIT](https://img.shields.io/github/license/virastack/form)](https://github.com/virastack/form/blob/main/LICENSE)
+[![@virastack](https://img.shields.io/badge/-%40virastack-555?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
 
