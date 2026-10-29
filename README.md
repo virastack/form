@@ -75,23 +75,6 @@ pnpm --filter @virastack/mask test
 pnpm --filter @virastack/password build
 ```
 
-## Releasing
-
-Each package is versioned by hand:
-
-1. Bump `version` in the package's `package.json` and add the release to its `CHANGELOG.md`.
-2. Commit and push to `main`.
-3. Publish from the repository root:
-
-```bash
-pnpm -r publish --access public
-```
-
-`pnpm -r publish` publishes only the packages whose version is not on npm yet,
-so releasing one package leaves the others untouched. Each package's
-`prepublishOnly` runs `pnpm check` first, so nothing is published without a
-fresh build, passing tests and the size budget.
-
 ## Contributing
 
 Label issues with the package they belong to — `pkg:mask`, `pkg:password`,
