@@ -1,5 +1,7 @@
 import index from "../data/index.json";
 
+import { matchPostalCode, normalizePostalCode, provinceCodeOf } from "./core/postal.js";
+
 export interface Province {
   /** Plate code, 1-81. */
   readonly code: number;
@@ -115,4 +117,30 @@ export function neighbourhoods(provinceCode: number): Promise<Parsed> {
     if (cache.get(provinceCode) === pending) cache.delete(provinceCode);
   });
   return pending;
+}
+
+export interface PostalCodeMatch {
+  readonly postalCode: string;
+  readonly province: Province;
+  readonly district: string;
+  /**
+   * Every neighbourhood under the code, in the district. One entry means the
+   * code alone gives the whole address; most codes cover several.
+   */
+  readonly neighbourhoods: readonly Neighbourhood[];
+}
+
+/**
+ * Where a postal code is. Only the province it starts with is loaded. Gives
+ * null for anything that is not a five digit code in the dataset; spaces are
+ * ignored, so "34 096" works.
+ */
+export async function findPostalCode(input: string | number): Promise<PostalCodeMatch | null> {
+  const postalCode = normalizePostalCode(input);
+  if (postalCode === null) return null;
+  const found = province(provinceCodeOf(postalCode));
+  if (!found) return null;
+  // No code spans two districts; the data build fails if one ever does.
+  const [hit] = matchPostalCode(await neighbourhoods(found.code), postalCode);
+  return hit ? { postalCode, province: found, district: hit.district, neighbourhoods: hit.neighbourhoods } : null;
 }

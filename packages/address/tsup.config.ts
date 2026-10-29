@@ -25,15 +25,13 @@ const shared: Options = {
   sourcemap: true,
   // The import map is shipped as data, not bundled: the consumer's bundler
   // splits it into one lazy chunk per province, and Node loads one at a time.
-  external: ["react", "react-hook-form", "../data/load.mjs"],
+  external: ["react", "../data/load.mjs"],
   esbuildPlugins: [sharedData],
   outExtension: ({ format }) => ({ js: format === "esm" ? ".mjs" : ".cjs" }),
 };
 
 export default defineConfig([
   { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
-  // The React Hook Form adapter is a separate entry so the core never pulls it in.
-  { ...shared, entry: { rhf: "src/rhf.ts" }, clean: false, banner: { js: '"use client";' } },
   // No React and no "use client" below: the dataset and the lookups run anywhere,
   // in Server Components, Actions, a CLI or another framework entirely.
   { ...shared, entry: { data: "src/data.ts" }, clean: false },

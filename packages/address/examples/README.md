@@ -1,12 +1,12 @@
 # Recipes
 
-`@virastack/address` ships one adapter, `/rhf`, because React Hook Form is what
-most of its users already have. Everything else is a few lines on top of the
-core hook — kept here as recipes rather than as code we would have to test
-against every upstream release.
+`useViraAddress` writes into React Hook Form itself, through the `form` option,
+because that is what most of its users already have. Everything else is a few
+lines on top of `onChange` — kept here as recipes rather than as code we would
+have to test against every upstream release.
 
 If one of these starts carrying its weight, open an issue and it can become a
-real adapter.
+built-in.
 
 ## Formik
 
@@ -30,9 +30,9 @@ export function AddressFields() {
 
   return (
     <>
-      <select {...address.getProvinceProps({ as: "native" })} />
-      <select {...address.getDistrictProps({ as: "native" })} />
-      <select {...address.getNeighbourhoodProps({ as: "native" })} />
+      <select {...address.getProvinceProps()} />
+      <select {...address.getDistrictProps()} />
+      <select {...address.getNeighbourhoodProps()} />
     </>
   );
 }
@@ -55,9 +55,9 @@ export function AddressFields({ form }) {
 
   return (
     <>
-      <select {...address.getProvinceProps({ as: "native" })} />
-      <select {...address.getDistrictProps({ as: "native" })} />
-      <select {...address.getNeighbourhoodProps({ as: "native" })} />
+      <select {...address.getProvinceProps()} />
+      <select {...address.getDistrictProps()} />
+      <select {...address.getNeighbourhoodProps()} />
     </>
   );
 }
@@ -72,9 +72,9 @@ reach the server:
 const address = useViraAddress();
 
 <form action={createAddress}>
-  <select {...address.getProvinceProps({ as: "native" })} />
-  <select {...address.getDistrictProps({ as: "native" })} />
-  <select {...address.getNeighbourhoodProps({ as: "native" })} />
+  <select {...address.getProvinceProps()} />
+  <select {...address.getDistrictProps()} />
+  <select {...address.getNeighbourhoodProps()} />
   <input {...address.getPostalCodeProps()} />
   <button type="submit">Kaydet</button>
 </form>
@@ -113,10 +113,10 @@ const { provinces, districts, neighbourhoods, setProvince, setDistrict, setNeigh
 />
 ```
 
-`foldTr` is exported for filtering, so a search for `kadikoy` matches `KADIKÖY`:
+`toSearchKey` is exported for filtering, so a search for `kadikoy` matches `KADIKÖY`:
 
 ```ts
-import { foldTr } from "@virastack/address";
+import { toSearchKey } from "@virastack/address";
 
-const hits = neighbourhoods.filter((n) => foldTr(n.label).includes(foldTr(query)));
+const hits = neighbourhoods.filter((n) => toSearchKey(n.label).includes(toSearchKey(query)));
 ```

@@ -50,6 +50,9 @@ const sizes = [];
 let districtCount = 0;
 let neighbourhoodCount = 0;
 let multiCount = 0;
+// Postal code lookup reads only the province a code starts with and expects
+// one district per code; a dataset that breaks either rule must not ship.
+const districtOfCode = new Map();
 
 for (const province of input.sort((a, b) => a.code - b.code)) {
   assertEncodable(province.name, `province ${province.code}`);
@@ -75,6 +78,15 @@ for (const province of input.sort((a, b) => a.code - b.code)) {
       }
       if (codes.length === 0) warnings.push(`${province.name}/${district.name}/${n.name}: no postal code`);
       if (codes.length > 1) multiCount++;
+      for (const code of codes) {
+        if (Number(code.slice(0, 2)) !== province.code) {
+          throw new Error(`${province.name}/${district.name}/${n.name}: postal code ${code} does not start with plate ${province.code}`);
+        }
+        const where = `${province.name}/${district.name}`;
+        const seen = districtOfCode.get(code);
+        if (seen && seen !== where) throw new Error(`Postal code ${code} spans two districts: ${seen} and ${where}`);
+        districtOfCode.set(code, where);
+      }
       parts.push(`${n.name}:${codes.join(",")}`);
     }
 
@@ -141,6 +153,7 @@ const total = sizes.reduce((a, s) => a + s.rawKB, 0);
 
 console.log(`provinces ${index.length} · districts ${districtCount} · neighbourhoods ${neighbourhoodCount}`);
 console.log(`${multiCount} neighbourhood(s) carry more than one postal code`);
+console.log(`${districtOfCode.size} postal codes, each within one district`);
 console.log(
   `index.json ${(Buffer.byteLength(indexJson) / 1024).toFixed(1)} kB raw · ${(gzipSync(indexJson).length / 1024).toFixed(1)} kB gzip`,
 );

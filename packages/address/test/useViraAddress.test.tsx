@@ -186,7 +186,7 @@ describe("prop getters", () => {
   it("lets the caller override the defaults", () => {
     const { result } = renderHook(() => useViraAddress({ source }));
     expect(result.current.getDistrictProps({ disabled: false }).disabled).toBe(false);
-    expect(result.current.getProvinceProps({ placeholder: "Nerede?" }).placeholder).toBe("Nerede?");
+    expect(result.current.getProvinceProps({ as: "headless", placeholder: "Nerede?" }).placeholder).toBe("Nerede?");
     expect(result.current.getProvinceProps({ name: "sehir" }).name).toBe("sehir");
   });
 
@@ -203,6 +203,20 @@ describe("prop getters", () => {
       pending[0].resolve(new Map([["FATİH", [{ name: "AKSARAY MAH.", postalCode: "34096", postalCodes: ["34096"] }]]]));
     });
     expect(result.current.getNeighbourhoodProps()["aria-busy"]).toBe(false);
+  });
+
+  it("emits a native select by default, and options for headless", () => {
+    const { result } = renderHook(() => useViraAddress({ source }));
+
+    const native = result.current.getProvinceProps();
+    expect(native).toHaveProperty("children");
+    expect(native).not.toHaveProperty("options");
+    expect(native).not.toHaveProperty("placeholder");
+
+    const headless = result.current.getProvinceProps({ as: "headless" });
+    expect(headless).toMatchObject({ placeholder: "İl seçiniz", loading: false });
+    expect((headless.options as unknown[]).length).toBe(3);
+    expect(headless).not.toHaveProperty("children");
   });
 
   it("renames props per library", () => {
@@ -230,13 +244,13 @@ describe("prop getters", () => {
     expect(filter("adana", { label: "İstanbul" })).toBe(false);
   });
 
-  it("renders a working native select on its own", async () => {
+  it("renders a working native select by default", async () => {
     function Fields() {
       const address = useViraAddress({ source });
       return (
         <>
-          <select data-testid="province" {...address.getProvinceProps({ as: "native" })} />
-          <select data-testid="district" {...address.getDistrictProps({ as: "native" })} />
+          <select data-testid="province" {...address.getProvinceProps()} />
+          <select data-testid="district" {...address.getDistrictProps()} />
         </>
       );
     }

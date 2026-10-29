@@ -1,7 +1,7 @@
 {
   "name": "@virastack/address",
   "version": "0.0.0",
-  "description": "Headless Turkish address hook for React: province, district and neighbourhood with postal code, plus the dataset behind it",
+  "description": "Headless Turkish address hook for React: chained province, district and neighbourhood selects, derived postal codes, server validation and the PTT dataset",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
     "email": "iletisim@omergulcicek.com",
@@ -40,16 +40,6 @@
       "require": {
         "types": "./dist/data.d.cts",
         "default": "./dist/data.cjs"
-      }
-    },
-    "./rhf": {
-      "import": {
-        "types": "./dist/rhf.d.mts",
-        "default": "./dist/rhf.mjs"
-      },
-      "require": {
-        "types": "./dist/rhf.d.cts",
-        "default": "./dist/rhf.cjs"
       }
     },
     "./server": {
@@ -113,29 +103,30 @@
     "typescript"
   ],
   "peerDependencies": {
-    "react": ">=18.2.0",
-    "react-hook-form": ">=7.55.0"
+    "react": ">=18.2.0"
   },
   "peerDependenciesMeta": {
     "react": {
-      "optional": true
-    },
-    "react-hook-form": {
       "optional": true
     }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:",
     "@eslint/js": "catalog:",
+    "@hookform/resolvers": "catalog:",
     "@size-limit/preset-small-lib": "catalog:",
+    "@tanstack/react-form": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@virastack/mask": "workspace:*",
+    "@virastack/password": "workspace:*",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
+    "formik": "catalog:",
     "jsdom": "catalog:",
     "publint": "catalog:",
     "react": "catalog:",
@@ -145,27 +136,17 @@
     "tsup": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:"
   },
   "size-limit": [
     {
       "name": "@virastack/address (hook + province and district names)",
       "path": "dist/index.mjs",
       "import": "*",
-      "limit": "7.5 kB",
+      "limit": "8.5 kB",
       "ignore": [
         "react",
-        "../data/load.mjs"
-      ]
-    },
-    {
-      "name": "@virastack/address/rhf",
-      "path": "dist/rhf.mjs",
-      "import": "*",
-      "limit": "8 kB",
-      "ignore": [
-        "react",
-        "react-hook-form",
         "../data/load.mjs"
       ]
     },
