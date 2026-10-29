@@ -159,7 +159,7 @@ Upgrading from v1? See [MIGRATION.md](MIGRATION.md).
 
 ## Ecosystem
 
-Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Password](https://github.com/virastack/form/tree/main/packages/password) · [Guide](https://github.com/virastack/guide)
+Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Password](https://github.com/virastack/form/tree/main/packages/password) · [Address](https://github.com/virastack/form/tree/main/packages/address) · [Guide](https://github.com/virastack/guide)
 
 ## License
 

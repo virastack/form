@@ -46,7 +46,7 @@ StrictMode are covered for all three together in
 packages/
 ├── mask/          → @virastack/mask
 ├── password/      → @virastack/password
-└── address/       → @virastack/address (unreleased)
+└── address/       → @virastack/address
 ```
 
 Shared infrastructure lives at the root: `tsconfig.base.json`,
@@ -84,6 +84,10 @@ Releasing one package leaves the others untouched.
 Label issues with the package they belong to — `pkg:mask`, `pkg:password`,
 `pkg:address`. The "report a bug" links in each package README add the label for
 you.
+
+## Ecosystem
+
+Part of the [ViraStack](https://virastack.com) ecosystem: [Academy](https://github.com/virastack/academy) · [Start](https://github.com/virastack/start) · [AI](https://github.com/virastack/ai) · [Guide](https://github.com/virastack/guide)
 
 ## License
 
