@@ -1,12 +1,20 @@
 <div align="center">
 
-# ViraStack Form
+<a href="https://github.com/virastack/form" target="_blank" rel="noreferrer">
+  <img src="https://raw.githubusercontent.com/virastack/form/main/assets/logo.png" alt="ViraStack Form" height="120" style="max-width: 100%;" />
+</a>
 
-**Headless React form hooks: input masks, passwords and Turkish addresses.**
+*Headless React form hooks: input masks, passwords and Turkish addresses*
 
-Open source, headless and type-safe: each package renders nothing, ships its own types, and leaves inputs and styles to you. Mask and Address check field names against your form's type.
+[![ViraStack Form](https://img.shields.io/badge/ViraStack-Form-%2371717b)](https://github.com/virastack/form)
+[![License: MIT](https://img.shields.io/github/license/virastack/form)](LICENSE)
+[![@virastack](https://img.shields.io/badge/-%40virastack-555?logo=x&logoColor=white)](https://x.com/virastack)
 
 </div>
+
+---
+
+Open source, headless and type-safe: each package renders nothing, ships its own types, and leaves inputs and styles to you. Mask and Address check field names against your form's type.
 
 ## Packages
 
