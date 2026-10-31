@@ -1,0 +1,42 @@
+name: Release
+
+# Each package is released on its own tag, such as mask@2.1.1.
+on:
+  push:
+    tags:
+      - "address@*"
+      - "mask@*"
+      - "password@*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1+.
+      - run: npm install -g npm@latest
+      - name: Read package from tag
+        run: echo "PACKAGE=${GITHUB_REF_NAME%@*}" >> "$GITHUB_ENV"
+      - name: Check tag matches package version
+        run: test "$GITHUB_REF_NAME" = "$PACKAGE@$(node -p "require('./packages/$PACKAGE/package.json').version")"
+      - run: pnpm install --frozen-lockfile
+      # Address imports the built mask and password packages in its checks.
+      - run: pnpm build
+      - run: pnpm check
+        working-directory: packages/${{ env.PACKAGE }}
+      # pnpm pack resolves workspace:* ranges, which npm publish would ship as they are.
+      - run: pnpm pack --pack-destination "$RUNNER_TEMP"
+        working-directory: packages/${{ env.PACKAGE }}
+      - run: npm publish "$RUNNER_TEMP"/*.tgz --access public
