@@ -113,6 +113,11 @@ function clean(value: string, info: NumberFormatInfo): string {
     negative = max.startsWith("-");
     body = max.replace("-", "");
   }
+  if (body !== "" && info.min !== undefined && Number(negative ? `-${body}` : body) < info.min) {
+    const min = String(info.min);
+    negative = min.startsWith("-");
+    body = min.replace("-", "");
+  }
   if (negative && body === "") return "-";
   return negative ? `-${body}` : body;
 }
@@ -146,6 +151,12 @@ function readTyped(text: string, info: NumberFormatInfo, typedDecimalAt: number)
   return out;
 }
 
+/**
+ * Formats keystrokes into a masked numeric value. This is client-side formatting only:
+ * it does not guarantee that `min`/`max`/`scale` hold once the value leaves the browser
+ * (DOM tampering, disabled JS, or a direct request bypass the mask entirely), so consumers
+ * must re-validate and normalize the submitted value on the server.
+ */
 export function editNumber(input: EditInput, info: NumberFormatInfo): EditResult {
   const { previous, inputType } = input;
   let next = input.value;
