@@ -108,7 +108,9 @@ function clean(value: string, info: NumberFormatInfo): string {
   }
   body = frac === undefined ? int : `${int}.${frac}`;
 
-  if (body !== "" && info.max !== undefined && Number(negative ? `-${body}` : body) > info.max) {
+  // Below zero, more digits can still bring a signed value into range, so `finalize` clamps it instead.
+  const clampsOnBlur = info.signed && info.max !== undefined && info.max < 0;
+  if (body !== "" && info.max !== undefined && !clampsOnBlur && Number(negative ? `-${body}` : body) > info.max) {
     const max = String(info.max);
     negative = max.startsWith("-");
     body = max.replace("-", "");

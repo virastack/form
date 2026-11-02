@@ -304,6 +304,32 @@ describe("number and currency", () => {
     expect(mask.validate("5")).toBe("number.min");
   });
 
+  it("number clamps a negative max on blur, so digits can still be typed", () => {
+    const mask = createMask({ number: { signed: true, max: -5 } });
+    expect(type(mask, "-10").value).toBe("-10");
+    expect(type(mask, "-3").value).toBe("-3");
+    expect(type(mask, "10").value).toBe("10");
+    expect(mask.finalize("-10")).toBe("-10");
+    expect(mask.finalize("-3")).toBe("-5");
+    expect(mask.finalize("10")).toBe("-5");
+    expect(mask.validate("-10")).toBeUndefined();
+    expect(mask.validate("-3")).toBe("number.max");
+  });
+
+  it("number with a negative max keeps fractions and min", () => {
+    expect(type(createMask({ number: { signed: true, scale: 2, max: -0.5 } }), "-0.75").value).toBe("-0.75");
+    const ranged = createMask({ number: { signed: true, min: -100, max: -5 } });
+    expect(type(ranged, "-50").value).toBe("-50");
+    expect(ranged.finalize("-300")).toBe("-100");
+    expect(ranged.finalize("-3")).toBe("-5");
+  });
+
+  it("number with a max of zero or above still clamps while typing", () => {
+    expect(type(createMask({ number: { signed: true, max: 0 } }), "5").value).toBe("0");
+    expect(type(createMask({ number: { signed: true, max: 0 } }), "-10").value).toBe("-10");
+    expect(createMask({ number: { max: 500 } }).finalize("999")).toBe("999");
+  });
+
   it("backspace over a group separator removes the digit before it", () => {
     const mask = createMask({ preset: "number", country: "TR" });
     const result = backspace(mask, "1.234", 2);

@@ -269,6 +269,7 @@ function numberMask(
       const info = infoFor(ctx);
       let next = value;
       if (config.min !== undefined && Number(next) < config.min) next = String(config.min);
+      if (config.signed && config.max !== undefined && config.max < 0 && Number(next) > config.max) next = String(config.max);
       if (currency && next.includes(".") && info.scale > 0) {
         const [int, frac = ""] = next.split(".");
         next = `${int}.${frac.padEnd(info.scale, "0")}`;

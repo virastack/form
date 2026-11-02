@@ -6,6 +6,10 @@
 
 - **`fullName` preset**: letters of any language and single spaces, starting with a letter, 70 characters at most. It sets `autoComplete: "name"`. On a card form use `{ preset: "fullName", autoComplete: "cc-name" }`. To allow `'` or `-`, spread `presets.fullName.options` into `definePreset` with your own `n` token.
 
+### Fixed
+
+- **Negative `max` on `signed` numbers**: typing `-10` with `max: -5` gave `-50`, because `-1` was clamped to `-5` as soon as it was typed. A negative `max` now applies on blur. On the server, `parseMasked` returns `number.max` for `-3` instead of changing it to `-5`. A `max` of zero or above works as before.
+
 ## 2.1.0
 
 ### Added

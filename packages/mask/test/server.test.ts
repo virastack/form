@@ -62,6 +62,12 @@ describe("@virastack/mask/server", () => {
     });
   });
 
+  it("rejects a value above a negative max instead of changing it", () => {
+    const schema = { temperature: { number: { signed: true, max: -5 } } };
+    expect(parseMasked(schema, { temperature: "-10" }).success).toBe(true);
+    expect(parseMasked(schema, { temperature: "-3" }).errors).toEqual({ temperature: "number.max" });
+  });
+
   it("validates the parsed data with Zod (Standard Schema)", async () => {
     const schema = z.object({
       phone: z.string().length(10),
