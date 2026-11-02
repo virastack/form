@@ -43,11 +43,17 @@ const phone = definePreset("phone", {
 const phoneTR = definePreset("phone", {
   mask: "(999) 999 99 99",
   normalize: (value: string) => {
-    let d = digits(value).replace(/^00(?=90)/, "");
-    // Turkish numbers start with 2–5 or 8 after the country code, so "90" followed by one of
-    // those is the country code, not part of the number; drop it as soon as it is recognisable.
-    if (d.startsWith("90") && (d.length > 10 || /^90[2-58]/.test(d))) d = d.slice(2);
-    return d.replace(/^0+/, "");
+    let d = digits(value);
+    let previous: string;
+    // Repeats until stable, because the display is normalized again when it is parsed ("0905" → "5").
+    do {
+      previous = d;
+      d = d.replace(/^0+/, "");
+      // Turkish numbers start with 2–5 or 8 after the country code, so "90" followed by one of
+      // those is the country code, not part of the number; drop it as soon as it is recognisable.
+      if (d.startsWith("90") && (d.length > 10 || /^90[2-58]/.test(d))) d = d.slice(2);
+    } while (d !== previous);
+    return d;
   },
   inputMode: "tel",
   type: "tel",

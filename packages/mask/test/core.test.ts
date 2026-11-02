@@ -130,6 +130,21 @@ describe("presets", () => {
     expect(mask.validate("5551234567")).toBeUndefined();
   });
 
+  it.each([
+    ["0905", "5", "(5"],
+    ["0904", "4", "(4"],
+    ["090", "90", "(90"],
+    ["0905551234567", "5551234567", "(555) 123 45 67"],
+    ["90905551234", "5551234", "(555) 123 4"],
+  ])("phone TR keeps value and display in sync when %s is pasted", (text, value, display) => {
+    const mask = createMask({ preset: "phone", country: "TR" });
+    const result = mask.edit({ previous: "", value: text, selectionStart: text.length, inputType: "insertFromPaste" });
+    expect(result.value).toBe(value);
+    expect(result.display).toBe(display);
+    expect(mask.parse(result.display)).toBe(result.value);
+    expect(mask.format(result.value)).toBe(result.display);
+  });
+
   it("phone is E.164 and switches to the Turkish layout on +90", () => {
     const mask = createMask("phone");
     expect(mask.format("+905551234567")).toBe("+90 (555) 123 45 67");
