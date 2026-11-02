@@ -69,6 +69,7 @@ export function Checkout() {
 | `cvv` | 3 digits, 4 for Amex (with `from: "card"`) | `123` |
 | `expiry` | `12/28`, past months are invalid | `1228` |
 | `tckn`, `vkn` | `10000000146` | `10000000146` |
+| `fullName` | `Ömer Gülçiçek`, letters and single spaces | `Ömer Gülçiçek` |
 | `currency` | `1,234.56`; with a code `$1,234.56` (Intl) | `1234.56` |
 | `currency` + `country: "TR"` | `₺1.234,56` | `1234.56` |
 | `number` | `1,234` | `1234` |

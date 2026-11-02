@@ -1,5 +1,11 @@
 # @virastack/mask
 
+## 2.2.0
+
+### Added
+
+- **`fullName` preset**: letters of any language and single spaces, starting with a letter, 70 characters at most. It sets `autoComplete: "name"`. On a card form use `{ preset: "fullName", transform: "uppercase", autoComplete: "cc-name" }`. To allow `'` or `-`, spread `presets.fullName.options` into `definePreset` with your own `n` token.
+
 ## 2.1.0
 
 ### Added

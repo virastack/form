@@ -25,7 +25,7 @@ The form already holds the raw value. Read it with `form.watch("phone")` or `for
 | `date` (value `01022020`) | value is ISO `2020-02-01` |
 | `taxNumber` | `vkn` |
 | `numeric` | `number` |
-| `email`, `url`, `username`, `alpha`, `password`, `text`, `zipCode` | removed; validate them in your schema, or `definePreset` your own |
+| `email`, `url`, `username`, `alpha`, `password`, `text`, `zipCode` | removed; validate them in your schema, or `definePreset` your own. For person names use `fullName` (2.2+) instead of `alpha` |
 
 ## Options
 

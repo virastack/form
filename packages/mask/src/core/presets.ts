@@ -104,6 +104,17 @@ const vkn = definePreset("vkn", {
 
 /** Two decimals without a symbol (`1,234.56`); pass a code or `country` for one. */
 const currency = definePreset("currency", { currency: {}, autoComplete: "off" });
+/**
+ * Letters of any language and single spaces, starting with a letter, 70 characters at most.
+ * `\p{M}` keeps combining marks, which some scripts need and NFD input uses for `ö`.
+ */
+const fullName = definePreset("fullName", {
+  mask: `a[${"n".repeat(69)}]`,
+  tokens: { n: /[\p{L}\p{M} ]/u },
+  normalize: (value: string) => value.normalize("NFC").replace(/\s+/g, " "),
+  inputMode: "text",
+  autoComplete: "name",
+});
 /** `{ preset: "currency", country: "TR" }`: TRY with Turkish separators, `₺1.234,56`. */
 const currencyTR = definePreset("currency", { currency: { code: "TRY", locale: "tr-TR" }, autoComplete: "off" });
 const number = definePreset("number", { number: {}, autoComplete: "off" });
@@ -119,6 +130,7 @@ export const presets = Object.freeze({
   expiry,
   tckn,
   vkn,
+  fullName,
   currency,
   number,
   date,

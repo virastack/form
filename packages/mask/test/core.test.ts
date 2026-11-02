@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMask, definePreset, getCardType, isValidIBAN, isValidTCKN, isValidVKN, toMinorUnits } from "../src/core";
+import { createMask, definePreset, getCardType, isValidIBAN, isValidTCKN, isValidVKN, presets, toMinorUnits } from "../src/core";
 import type { EditInput, Mask, MaskContext } from "../src/core";
 
 /** Types `text` at the end of the current display, one character at a time. */
@@ -177,6 +177,48 @@ describe("presets", () => {
     expect(isValidVKN("1234567891")).toBe(false);
     expect(isValidVKN("1234567890")).toBe(true);
     expect(isValidVKN("0010010010")).toBe(true);
+  });
+
+  it("fullName keeps letters of any language and single spaces", () => {
+    const mask = createMask("fullName");
+    expect(type(mask, "Ömer Gülçiçek").value).toBe("Ömer Gülçiçek");
+    expect(mask.parse("  A1li  Veli-2")).toBe("Ali Veli");
+    expect(type(mask, "Ali  V").display).toBe("Ali V");
+    expect(type(mask, " 1Ali").value).toBe("Ali");
+    expect(mask.parse("Ömer")).toBe("Ömer");
+    expect(mask.parse("अनिल")).toBe("अनिल");
+    expect(mask.parse("a".repeat(80))).toHaveLength(70);
+    expect(mask.inputProps.autoComplete).toBe("name");
+  });
+
+  it("fullName never reports a partly typed name as incomplete", () => {
+    const mask = createMask("fullName");
+    expect(mask.validate("A")).toBeUndefined();
+    expect(mask.validate("Ali Veli")).toBeUndefined();
+    expect(mask.isComplete("A")).toBe(true);
+    expect(mask.isComplete("")).toBe(false);
+  });
+
+  it("fullName caret stays in place when a middle edit collapses spaces", () => {
+    const mask = createMask("fullName");
+    const result = mask.edit({ previous: "Ali Veli", value: "Ali  Veli", selectionStart: 4 });
+    expect(result.display).toBe("Ali Veli");
+    expect(result.cursor).toBe(4);
+    expect(backspace(mask, "Ali Veli", 4).display).toBe("AliVeli");
+  });
+
+  it("fullName takes overrides and can be widened through definePreset", () => {
+    const card = createMask({ preset: "fullName", transform: "uppercase", autoComplete: "cc-name" });
+    // `transform` uses toUpperCase, which is not locale-aware: Turkish `i` becomes `I`, not `İ`.
+    expect(card.parse("ömer gülçiçek")).toBe("ÖMER GÜLÇIÇEK");
+    expect(card.inputProps.autoComplete).toBe("cc-name");
+
+    const intlName = definePreset("intlName", {
+      ...presets.fullName.options,
+      tokens: { n: /[\p{L}\p{M} '-]/u },
+    });
+    expect(createMask(intlName).parse("Jean-Luc O'Neil")).toBe("Jean-Luc O'Neil");
+    expect(createMask(intlName).name).toBe("intlName");
   });
 
   it("country variants keep the preset name in error keys", () => {
