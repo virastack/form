@@ -15,4 +15,6 @@ export default defineConfig([
   { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
   // The server entry has no React and no "use client", so Server Components and Actions can call it.
   { ...shared, entry: { server: "src/server.ts" }, clean: false },
+  // Test and seed generators: kept out of the other entries, so they never ship to production code.
+  { ...shared, entry: { testing: "src/testing.ts" }, clean: false },
 ]);

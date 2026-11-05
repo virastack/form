@@ -152,6 +152,23 @@ The bank is read from the IBAN's bank code, so there is no API call. It does not
 check the IBAN itself; the `iban` preset and `isValidIBAN` do. See the
 [live demo and full list](https://virastack.com/mask/docs/banks).
 
+## Test data
+
+Valid TCKNs and IBANs for tests and seed data, from their own entry (2.3+). A
+generated value can belong to a real person or account, so use them only there.
+
+```ts
+import { generateIBAN, generateTCKN } from "@virastack/mask/testing";
+
+generateTCKN(); // passes isValidTCKN, a new number on every call
+generateTCKN({ seed: 1 }); // "49537717654" on every run
+generateIBAN("TR", { bank: "0062" }); // a Garanti IBAN, no spaces
+generateIBAN("DE", { seed: 1 }); // any country in the IBAN registry
+```
+
+The root and `/server` entries don't export them, so they never reach production
+bundles. See [test data](https://virastack.com/mask/docs/testing).
+
 Upgrading from v1? See [MIGRATION.md](MIGRATION.md).
 
 ## Ecosystem

@@ -1,5 +1,14 @@
 # @virastack/mask
 
+## 2.3.0
+
+### Added
+
+- **`@virastack/mask/testing` entry**: generators for tests and seed data. The root and `/server` entries don't export them, so they never reach production bundles. No React and no `"use client"`, so seed scripts and Server Components can import it. About 2 KB. A generated value can belong to a real person or account; use it only in tests and seed data.
+- **`generateTCKN({ seed })`**: a TCKN that passes `isValidTCKN`. The check digits use the same rule as `isValidTCKN`; no list is kept.
+- **`generateIBAN(country = "TR", { bank, seed })`**: an IBAN without spaces that passes `isValidIBAN`. A Turkish IBAN follows the national layout with a bank from `turkishBanks` (`bank: "0062"` picks Garanti), so `getTurkishBank` finds its bank. Other countries in the IBAN registry get a digits-only account part of the registry length: it passes the length and mod-97 checks, not national rules such as letters in a UK bank code. An unknown country, an unknown bank code or `bank` outside Turkey throws.
+- **`seed` option**: an integer seed gives the same value on every run and platform (mulberry32, no dependency). Each generator keeps its own stream, so one seed gives unrelated digits for a TCKN and an IBAN.
+
 ## 2.2.0
 
 ### Added

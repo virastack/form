@@ -1,6 +1,6 @@
 {
   "name": "@virastack/mask",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
@@ -39,6 +39,16 @@
       "require": {
         "types": "./dist/server.d.cts",
         "default": "./dist/server.cjs"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.mts",
+        "default": "./dist/testing.mjs"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -85,7 +95,8 @@
     "turkey",
     "server-actions",
     "standard-schema",
-    "typescript"
+    "typescript",
+    "test-data"
   ],
   "peerDependencies": {
     "react": ">=18.2.0",
@@ -144,6 +155,12 @@
       "path": "dist/server.mjs",
       "import": "*",
       "limit": "8.5 kB"
+    },
+    {
+      "name": "@virastack/mask/testing",
+      "path": "dist/testing.mjs",
+      "import": "*",
+      "limit": "2 kB"
     }
   ],
   "type": "commonjs"

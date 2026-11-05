@@ -41,15 +41,20 @@ export function isValidCard(value: string): boolean {
   return digits.length === cardLength(getCardType(digits)) && isValidLuhn(digits);
 }
 
-/** Turkish national ID (T.C. Kimlik No). */
-export function isValidTCKN(value: string): boolean {
-  if (!/^[1-9]\d{10}$/.test(value)) return false;
-  const d = [...value].map(Number);
+/** The 10th and 11th digits of a TCKN, computed from its first nine digits. */
+export function tcknCheckDigits(firstNine: string): string {
+  const d = [...firstNine].map(Number);
   const odd = d[0] + d[2] + d[4] + d[6] + d[8];
   const even = d[1] + d[3] + d[5] + d[7];
   const tenth = (((odd * 7 - even) % 10) + 10) % 10;
-  const eleventh = d.slice(0, 10).reduce((sum, digit) => sum + digit, 0) % 10;
-  return d[9] === tenth && d[10] === eleventh;
+  const eleventh = (d.reduce((sum, digit) => sum + digit, 0) + tenth) % 10;
+  return `${tenth}${eleventh}`;
+}
+
+/** Turkish national ID (T.C. Kimlik No). */
+export function isValidTCKN(value: string): boolean {
+  if (!/^[1-9]\d{10}$/.test(value)) return false;
+  return value.slice(9) === tcknCheckDigits(value.slice(0, 9));
 }
 
 /** Turkish tax number (Vergi Kimlik No). */
@@ -69,7 +74,7 @@ export function isValidVKN(value: string): boolean {
  * IBAN length per country, from the SWIFT IBAN registry.
  * Countries not listed are checked with the generic 15–34 rule.
  */
-const IBAN_LENGTHS: Readonly<Record<string, number>> = {
+export const IBAN_LENGTHS: Readonly<Record<string, number>> = {
   AD: 24, AE: 23, AL: 28, AT: 20, AZ: 28, BA: 20, BE: 16, BG: 22, BH: 22, BI: 27, BR: 29, BY: 28,
   CH: 21, CR: 22, CY: 28, CZ: 24, DE: 22, DJ: 27, DK: 18, DO: 28, EE: 20, EG: 29, ES: 24, FI: 18,
   FK: 18, FO: 18, FR: 27, GB: 22, GE: 22, GI: 23, GL: 18, GR: 27, GT: 28, HN: 28, HR: 21, HU: 28,
@@ -89,12 +94,16 @@ export function isValidIBAN(value: string): boolean {
   if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return false;
   const length = IBAN_LENGTHS[iban.slice(0, 2)];
   if (length !== undefined && iban.length !== length) return false;
-  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  return mod97(iban.slice(4) + iban.slice(0, 4)) === 1;
+}
+
+/** ISO 13616 remainder: letters count as 10–35 (A = 10), then the number mod 97. */
+export function mod97(value: string): number {
   let remainder = 0;
-  for (const char of rearranged) {
+  for (const char of value) {
     const code = char.charCodeAt(0);
     const chunk = code >= 65 ? String(code - 55) : char;
     for (const digit of chunk) remainder = (remainder * 10 + (digit.charCodeAt(0) - 48)) % 97;
   }
-  return remainder === 1;
+  return remainder;
 }
