@@ -2,7 +2,7 @@ import React, { useState, useId, useCallback, useEffect, useRef, ReactNode } fro
 import { flushSync } from 'react-dom';
 import { EyeIcon, EyeOffIcon } from '../icons';
 import { getInputType, getButtonAriaAttributes, getInputAriaAttributes } from '../core/logic';
-import type { PasswordIssue, Policy, StrengthResult } from '../strength/types';
+import type { Normalization, PasswordIssue, Policy, StrengthResult } from '../strength/types';
 
 export type ViraPasswordInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   ref?: React.Ref<HTMLInputElement>;
@@ -58,6 +58,12 @@ export interface UseViraPasswordOptions {
    * Enables `matches` and the `password.mismatch` key.
    */
   matchWith?: string;
+
+  /**
+   * Normalization for comparing with `matchWith`. Follows `policy` when one is set.
+   * @default "NFKC"
+   */
+  normalization?: Normalization;
 
   /**
    * The current value, e.g. `watch("password")`. Without it the hook follows typing in the input,
@@ -192,8 +198,8 @@ function mergeProps(...args: (object | undefined)[]): object {
   return result;
 }
 
-// Same comparison as the server: NFKC, so "é" typed two ways still matches.
-const sameText = (a: string, b: string) => a.normalize('NFKC') === b.normalize('NFKC');
+// Same comparison as the server, so "é" typed two ways still matches.
+const sameText = (a: string, b: string, form: Normalization) => a.normalize(form) === b.normalize(form);
 
 export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPasswordResult => {
   const {
@@ -206,6 +212,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
     policy,
     forbidden,
     matchWith,
+    normalization = 'NFKC',
     value: providedValue,
     icons,
     disabled = false,
@@ -231,8 +238,9 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   const inputId = (typeof userInputProps?.id === 'string' && userInputProps.id) || providedId || `virapassword-input-${generatedId}`;
 
   // Read from event handlers and listeners without re-subscribing on every render.
-  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, hideOnBlur, tracksValue });
-  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, hideOnBlur, tracksValue };
+  const form = policy?.normalization ?? normalization;
+  const latest = useRef({ isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, form, hideOnBlur, tracksValue });
+  latest.current = { isVisible, controlled: controlledVisible !== undefined, onVisibleChange, policy, forbidden, matchWith, form, hideOnBlur, tracksValue };
 
   // Set between a pointer press on the toggle and its click.
   const pointerPress = useRef<{ start: number | null; end: number | null } | null>(null);
@@ -339,7 +347,7 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   }, [inputId, hideOnFocusLeave]);
 
   const strength = policy ? policy.evaluate(value, { forbidden }) : null;
-  const matches = matchWith === undefined || value === '' ? null : sameText(value, matchWith);
+  const matches = matchWith === undefined || value === '' ? null : sameText(value, matchWith, form);
   const issues: PasswordIssue[] = strength ? [...strength.issues] : [];
   if (matches === false) issues.push('password.mismatch');
   const strengthId = `${inputId}-strength`;
@@ -347,11 +355,11 @@ export const useViraPassword = (options: UseViraPasswordOptions = {}): UseViraPa
   // Stable, and always checks the latest policy, so it can go straight into register().
   const [rule] = useState<ViraPasswordRule>(() => ({
     validate: (input) => {
-      const { policy: currentPolicy, forbidden: currentForbidden, matchWith: currentMatch } = latest.current;
+      const { policy: currentPolicy, forbidden: currentForbidden, matchWith: currentMatch, form: currentForm } = latest.current;
       const text = typeof input === 'string' ? input : '';
       const result = currentPolicy?.evaluate(text, { forbidden: currentForbidden });
       if (result && !result.valid) return result.issues[0];
-      if (currentMatch !== undefined && !sameText(text, currentMatch)) return 'password.mismatch';
+      if (currentMatch !== undefined && !sameText(text, currentMatch, currentForm)) return 'password.mismatch';
       return true;
     },
   }));

@@ -153,7 +153,7 @@ describe("Unicode", () => {
     const arabic = "كلمةمرورطويلةجدا";
     expect(evaluate(hebrew, nist)).toMatchObject({ length: 15, valid: true });
     expect(evaluate(arabic, nist).valid).toBe(true);
-    expect(evaluate(arabic, nist).score).toBeGreaterThanOrEqual(3);
+    expect(evaluate(arabic, nist).score).toBe(2);
   });
 
   it("a ZWJ emoji sequence counts its visible parts", () => {
@@ -248,11 +248,16 @@ describe("repetition and sequences", () => {
 describe("policy blocklist", () => {
   const policy = definePolicy({ blocklist: ["ViraStack", "", "  ", "Vira Stack Pro"] });
 
-  it("blocks words the password contains, ignoring case, accents and leetspeak", () => {
-    expect(issues("my-virastack-account", policy)).toEqual(["password.blocked"]);
-    expect(issues("MY-VİRASTACK-ACCOUNT", policy)).toEqual(["password.blocked"]);
-    expect(issues("my-v1r4st4ck-account", policy)).toEqual(["password.blocked"]);
-    expect(issues("my vira stack account", policy)).toEqual(["password.blocked"]);
+  it("blocks a password that is a word, ignoring case, accents, leetspeak, digits and repetition", () => {
+    expect(issues("virastack-2024-!!", policy)).toEqual(["password.blocked"]);
+    expect(issues("VİRASTACK2024VİRASTACK", policy)).toEqual(["password.blocked"]);
+    expect(issues("v1r4st4ck-1234567", policy)).toEqual(["password.blocked"]);
+    expect(issues("vira stack 2024 !!", policy)).toEqual(["password.blocked"]);
+    expect(issues("vira-stack-pro-2025", policy)).toEqual(["password.blocked"]);
+  });
+
+  it("compares the whole password, not the words in it (NIST SP 800-63B-4)", () => {
+    expect(issues("my-virastack-account", policy)).toEqual([]);
     expect(issues("my-other-account-here", policy)).toEqual([]);
   });
 
@@ -269,8 +274,8 @@ describe("policy blocklist", () => {
     ["!", "i"],
     ["+", "t"],
   ])("reads %s as %s", (leet, letter) => {
-    const word = `qz${letter}qz`;
-    expect(issues(`long-prefix-qz${leet}qz-x`, definePolicy({ blocklist: [word] }))).toEqual(["password.blocked"]);
+    const word = `qzx${letter}qzx`;
+    expect(issues(`qzx${leet}qzx-1234-5678`, definePolicy({ blocklist: [word] }))).toEqual(["password.blocked"]);
   });
 
   it("normalizes words and drops empty ones", () => {
@@ -281,11 +286,16 @@ describe("policy blocklist", () => {
 describe("forbidden (personal info)", () => {
   const email = "omer.gulcicek92@example.com";
 
-  it("rejects the email's local part and its parts", () => {
-    expect(issues("omer.gulcicek92-pass!", nist, [email])).toContain("password.containsPersonalInfo");
-    expect(issues("GÜLÇİÇEK-is-my-name", nist, [email])).toContain("password.containsPersonalInfo");
-    expect(issues("hello-omer-friend-x", nist, [email])).toContain("password.containsPersonalInfo");
-    expect(issues("g0lcicek-in-leetspeak".replace("0", "u"), nist, [email])).toContain("password.containsPersonalInfo");
+  it("rejects the email's local part and its parts, with digits, symbols and leetspeak around them", () => {
+    expect(issues("omer.gulcicek92-2024!", nist, [email])).toContain("password.containsPersonalInfo");
+    expect(issues("GÜLÇİÇEK-1990-2024!", nist, [email])).toContain("password.containsPersonalInfo");
+    expect(issues("omer!omer!omer!omer", nist, [email])).toContain("password.containsPersonalInfo");
+    expect(issues("Gulc1cek-1990-2024!", nist, [email])).toContain("password.containsPersonalInfo");
+  });
+
+  it("does not reject a passphrase that only contains a part (NIST SP 800-63B-4)", () => {
+    expect(issues("hello-omer-friend-x", nist, [email])).toEqual([]);
+    expect(issues("kalitelibirsabahkahvesi", nist, ["ali@example.com"])).toEqual([]);
   });
 
   it("ignores the domain", () => {
@@ -298,34 +308,34 @@ describe("forbidden (personal info)", () => {
   });
 
   it("checks names, usernames and digit parts", () => {
-    expect(issues("ayse-yilmaz-loves-tea", nist, ["Ayşe Yılmaz"])).toContain("password.containsPersonalInfo");
-    expect(issues("born-in-1992-somewhere", nist, ["ayse1992@example.com"])).toContain("password.containsPersonalInfo");
-    expect(issues("handle-coolcat-rocks", nist, ["@coolcat"])).toContain("password.containsPersonalInfo");
+    expect(issues("ayse-yilmaz-2024-!!", nist, ["Ayşe Yılmaz"])).toContain("password.containsPersonalInfo");
+    expect(issues("ayse1992-ayse1992", nist, ["ayse1992@example.com"])).toContain("password.containsPersonalInfo");
+    expect(issues("coolcat-1234567890", nist, ["@coolcat"])).toContain("password.containsPersonalInfo");
   });
 
   it("matches Turkish dotless and dotted i both ways", () => {
-    expect(issues("isik-gunes-dogan-x", nist, ["Işık"])).toEqual(["password.containsPersonalInfo"]);
-    expect(issues("IŞIK-güneş-doğan-x", nist, ["isik"])).toEqual(["password.containsPersonalInfo"]);
-    expect(issues("İSTİKLAL-yolu-uzun", nist, ["istiklal"])).toEqual(["password.containsPersonalInfo"]);
+    expect(issues("isik-1990-2024-!!", nist, ["Işık"])).toEqual(["password.containsPersonalInfo"]);
+    expect(issues("IŞIK-1990-2024-!!", nist, ["isik"])).toEqual(["password.containsPersonalInfo"]);
+    expect(issues("İSTİKLAL-1923-2024", nist, ["istiklal"])).toEqual(["password.containsPersonalInfo"]);
   });
 
   it("ignores non-strings and empty values", () => {
     expect(issues(OK15, nist, [null, undefined, 42, {}, "", "  ", new Blob(["x"])])).toEqual([]);
   });
 
-  it("false positives with 3-character parts, fixed by minTokenLength", () => {
-    // "Ali Can" → "ali", "can". "candlelight" contains "can".
-    const pw = "candlelight-garden-91";
-    expect(issues(pw, nist, ["Ali Can"])).toEqual(["password.containsPersonalInfo"]);
-    expect(issues(pw, definePolicy({ minTokenLength: 4 }), ["Ali Can"])).toEqual([]);
-    // The full value still counts at 4+: "ali can" is 7 characters.
-    expect(issues("ali can is my name ok", definePolicy({ minTokenLength: 4 }), ["Ali Can"])).toEqual([
+  it("short parts only match the whole password, so words containing them pass", () => {
+    // "Ali Can" → "ali", "can". "candlelight" contains "can" and passes.
+    expect(issues("candlelight-garden-91", nist, ["Ali Can"])).toEqual([]);
+    expect(issues("can-1990-2024-!!!", nist, ["Ali Can"])).toEqual(["password.containsPersonalInfo"]);
+    expect(issues("can-1990-2024-!!!", definePolicy({ minTokenLength: 4 }), ["Ali Can"])).toEqual([]);
+    // The full value still counts at 4+: "alican" is 6 characters.
+    expect(issues("ali can 1990 2024", definePolicy({ minTokenLength: 4 }), ["Ali Can"])).toEqual([
       "password.containsPersonalInfo",
     ]);
   });
 
   it("is a hard fail", () => {
-    expect(evaluate("omer-gulcicek-garden", nist, { forbidden: [email] }).score).toBe(0);
+    expect(evaluate("omer-gulcicek-2024!", nist, { forbidden: [email] }).score).toBe(0);
   });
 
   it("is skipped for an empty password", () => {
@@ -369,11 +379,11 @@ describe("legacy composition rules", () => {
 });
 
 describe("score", () => {
-  it("valid passwords score 2–4, by length and character variety", () => {
+  it("valid passwords score 2–4 by length past the minimum: +5 good, +10 strong", () => {
     expect(evaluate("kjhqwmzxpvnrtyl", nist)).toMatchObject({ score: 2, level: "fair" });
     expect(evaluate("kjhqwmzxpvnrtylbgdsf", nist)).toMatchObject({ score: 3, level: "good" });
-    expect(evaluate("kjhqwmzxpvnrtylbgdsfca", nist)).toMatchObject({ score: 4, level: "strong" });
-    expect(evaluate("vu7#Kq2!mz9@Lw4X", nist)).toMatchObject({ score: 4, level: "strong" });
+    expect(evaluate("kjhqwmzxpvnrtylbgdsfcaeoi", nist)).toMatchObject({ score: 4, level: "strong" });
+    expect(evaluate("kjhqwmzx", definePolicy({ preset: "mfa" }))).toMatchObject({ score: 2, level: "fair" });
   });
 
   it("repeated characters add little", () => {
@@ -391,21 +401,18 @@ describe("score", () => {
   it.each([
     ["password", ["password.tooShort", "password.common"]],
     ["aaaaaaaaaaaaaaa", ["password.repetitive"]],
-    ["my-acme-account-pw", ["password.blocked"]],
-    ["omer-garden-path-91", ["password.containsPersonalInfo"]],
+    ["acme-2024-acme-2024", ["password.blocked"]],
+    ["selin-1990-2024-!!", ["password.containsPersonalInfo"]],
   ])("any severe issue scores 0: %s", (pw, expected) => {
-    const result = evaluate(pw, definePolicy({ blocklist: ["acme"] }), { forbidden: ["omer@example.com"] });
+    const result = evaluate(pw, definePolicy({ blocklist: ["acme"] }), { forbidden: ["selin@example.com"] });
     expect(result.issues).toEqual(expected);
     expect(result.score).toBe(0);
   });
 
-  it("each character class widens the pool", () => {
-    // 20 digits: 10 symbols in the pool → fair; the same length with letters and digits → strong.
-    expect(evaluate("83920174658291037465", nist).score).toBe(2);
-    expect(evaluate("kmqxvzwprt" + "kmqxvzwprt".toUpperCase(), nist).score).toBe(4);
-    expect(evaluate("kmqxvzwprtbgjhn", nist).score).toBe(2);
-    expect(evaluate("k3m9q2x7v4z8w1p6r5t0", nist).score).toBe(4);
-    expect(evaluate("kmqxvzwprtbgjhnldfsy", nist).score).toBe(3);
+  it("character classes do not change the score (no composition rules)", () => {
+    expect(evaluate("denizkenarindas", nist).score).toBe(evaluate("Denizkenarinda1", nist).score);
+    expect(evaluate("kmqxvzwprtbgjhnldfsy", nist).score).toBe(evaluate("Km9!vzwprtbgjhnldfsy", nist).score);
+    expect(evaluate("k3m9q2x7v4z8w1p6r5t0", nist).score).toBe(3);
   });
 
   it("non-strings count as empty", () => {

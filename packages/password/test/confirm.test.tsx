@@ -6,7 +6,7 @@ import { mergeProps, useViraPassword, type UseViraPasswordOptions } from "../src
 import { definePolicy } from "../src/strength";
 
 const policy = definePolicy();
-const STRONG = "vu7#Kq2!mz9@Lw4X";
+const STRONG = "vu7#Kq2!mz9@Lw4X-bt5Rn8Jy";
 
 const hook = (options: UseViraPasswordOptions) => renderHook(() => useViraPassword(options)).result.current;
 

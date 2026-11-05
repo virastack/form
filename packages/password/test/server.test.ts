@@ -7,7 +7,7 @@ import { definePolicy, evaluate } from "../src/strength";
 
 const { validatePassword } = server;
 const policy = definePolicy();
-const STRONG = "vu7#Kq2!mz9@Lw4X";
+const STRONG = "vu7#Kq2!mz9@Lw4X-bt5Rn8Jy";
 
 describe("validatePassword", () => {
   it("returns the engine result plus the normalized password", () => {
@@ -23,8 +23,8 @@ describe("validatePassword", () => {
   it("reads FormData values", () => {
     const form = new FormData();
     form.set("email", "omer.gulcicek@example.com");
-    form.set("password", "gulcicek-garden-path");
-    form.set("confirm", "gulcicek-garden-path");
+    form.set("password", "Gulcicek-1990-2024!");
+    form.set("confirm", "Gulcicek-1990-2024!");
     const result = validatePassword(form.get("password"), policy, {
       forbidden: [form.get("email")],
       confirm: form.get("confirm"),

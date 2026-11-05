@@ -8,7 +8,7 @@ import { mergeProps, useViraPassword, type UseViraPasswordOptions } from "../src
 import { definePolicy, evaluate } from "../src/strength";
 
 const policy = definePolicy();
-const STRONG = "vu7#Kq2!mz9@Lw4X";
+const STRONG = "vu7#Kq2!mz9@Lw4X-bt5Rn8Jy";
 
 function Meter(props: UseViraPasswordOptions) {
   const pw = useViraPassword(props);
@@ -68,12 +68,12 @@ describe("with a policy", () => {
   it("matches the engine for the same input", async () => {
     let pw!: ReturnType<typeof useViraPassword>;
     function Probe() {
-      pw = useViraPassword({ policy, forbidden: ["omer@example.com"] });
+      pw = useViraPassword({ policy, forbidden: ["selin@example.com"] });
       return <input aria-label="Password" {...pw.inputProps} />;
     }
     render(<Probe />);
-    await userEvent.type(input(), "omer-garden-path-91");
-    expect(pw.strength).toEqual(evaluate("omer-garden-path-91", policy, { forbidden: ["omer@example.com"] }));
+    await userEvent.type(input(), "selin-1990-2024-!!");
+    expect(pw.strength).toEqual(evaluate("selin-1990-2024-!!", policy, { forbidden: ["selin@example.com"] }));
     expect(pw.issues).toEqual(["password.containsPersonalInfo"]);
   });
 
@@ -156,7 +156,7 @@ describe("rule", () => {
     rerender({ policy: definePolicy({ minLength: 4 }), forbidden: ["kq2mz"] });
     expect(result.current.rule).toBe(first);
     expect(first.validate("short")).toBe(true);
-    expect(first.validate("xx-kq2mz-yy")).toBe("password.containsPersonalInfo");
+    expect(first.validate("kq2mz-2024")).toBe("password.containsPersonalInfo");
   });
 });
 

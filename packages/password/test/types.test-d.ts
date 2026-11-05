@@ -1,6 +1,8 @@
 import type React from "react";
 import { describe, expectTypeOf, it } from "vitest";
 import { getInputAriaAttributes, mergeProps, useViraPassword, type UseViraPasswordResult } from "../src";
+import { useForm } from "react-hook-form";
+import { useViraPasswordForm } from "../src/form";
 import { checkPwned, type PwnedResult } from "../src/pwned";
 import { validatePassword, type PasswordValidation } from "../src/server";
 import { definePolicy, evaluate, type PasswordIssue, type Policy, type StrengthResult } from "../src/strength";
@@ -78,5 +80,32 @@ describe("types", () => {
     expectTypeOf(result).toEqualTypeOf<PwnedResult>();
     if (result.status === "pwned") expectTypeOf(result.count).toEqualTypeOf<number>();
     if (result.status === "unknown") expectTypeOf(result.reason).toExtend<string>();
+  });
+
+  it("validatePassword returns a Promise only with pwned", () => {
+    const policy = definePolicy();
+    expectTypeOf(validatePassword("x", policy, { pwned: true })).toEqualTypeOf<Promise<PasswordValidation>>();
+    expectTypeOf(validatePassword("x", policy, { pwned: { timeout: 1000 } })).toEqualTypeOf<Promise<PasswordValidation>>();
+    expectTypeOf(validatePassword("x", policy, { pwned: false })).toEqualTypeOf<PasswordValidation>();
+    const maybe: boolean = Math.random() > 0.5;
+    expectTypeOf(validatePassword("x", policy, { pwned: maybe })).toEqualTypeOf<PasswordValidation | Promise<PasswordValidation>>();
+  });
+
+  it("useViraPasswordForm checks field names and types confirm", () => {
+    const form = useForm<{ email: string; password: string; confirm: string }>();
+    const withConfirm = useViraPasswordForm(form, { name: "password", confirm: "confirm", forbidden: ["email"] });
+    expectTypeOf(withConfirm.confirm).toEqualTypeOf<UseViraPasswordResult>();
+    const without = useViraPasswordForm(form, { name: "password" });
+    expectTypeOf(without.confirm).toEqualTypeOf<null>();
+    // @ts-expect-error not a field
+    useViraPasswordForm(form, { name: "pasword" });
+    // @ts-expect-error not a field
+    useViraPasswordForm(form, { name: "password", forbidden: ["mail"] });
+  });
+
+  it("policy presets", () => {
+    definePolicy({ preset: "mfa", normalization: "NFC" });
+    // @ts-expect-error unknown preset
+    definePolicy({ preset: "strict" });
   });
 });

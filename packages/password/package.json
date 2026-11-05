@@ -1,6 +1,6 @@
 {
   "name": "@virastack/password",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks",
   "author": {
     "name": "Ömer Gülçiçek (ViraStack)",
@@ -50,6 +50,16 @@
       "require": {
         "types": "./dist/server.d.cts",
         "default": "./dist/server.cjs"
+      }
+    },
+    "./form": {
+      "import": {
+        "types": "./dist/form.d.mts",
+        "default": "./dist/form.mjs"
+      },
+      "require": {
+        "types": "./dist/form.d.cts",
+        "default": "./dist/form.cjs"
       }
     },
     "./pwned": {
@@ -109,7 +119,13 @@
   ],
   "peerDependencies": {
     "react": ">=18.2.0",
-    "react-dom": ">=18.2.0"
+    "react-dom": ">=18.2.0",
+    "react-hook-form": ">=7.55.0"
+  },
+  "peerDependenciesMeta": {
+    "react-hook-form": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:",
@@ -173,7 +189,18 @@
       "name": "@virastack/password/server",
       "path": "dist/server.mjs",
       "import": "*",
-      "limit": "3 kB"
+      "limit": "3.5 kB"
+    },
+    {
+      "name": "@virastack/password/form",
+      "path": "dist/form.mjs",
+      "import": "*",
+      "limit": "3 kB",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react-hook-form"
+      ]
     },
     {
       "name": "@virastack/password/pwned",

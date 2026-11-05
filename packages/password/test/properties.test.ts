@@ -53,11 +53,20 @@ describe("evaluate invariants", () => {
     );
   });
 
-  it("a password containing a forbidden email's local part is rejected", () => {
+  it("a forbidden email's local part with digits and symbols around it is rejected", () => {
     fc.assert(
-      fc.property(fc.stringMatching(/^[a-z]{4,12}$/), fc.stringMatching(/^[a-z0-9]{0,8}$/), (local, suffix) => {
-        const result = evaluate(`Xq9!${local}${suffix}#Zr7`, policies[0], { forbidden: [`${local}@example.com`] });
+      fc.property(fc.stringMatching(/^[a-z]{4,12}$/), fc.stringMatching(/^[0-9!#.-]{0,8}$/), (local, suffix) => {
+        const result = evaluate(`${local}${suffix}`, policies[0], { forbidden: [`${local}@example.com`] });
         expect(result.issues).toContain("password.containsPersonalInfo");
+      }),
+    );
+  });
+
+  it("a forbidden value inside a longer passphrase is not rejected", () => {
+    fc.assert(
+      fc.property(fc.stringMatching(/^[a-z]{3,8}$/), (name) => {
+        const result = evaluate(`garden-${name}-coast-path`, policies[0], { forbidden: [name] });
+        expect(result.issues).not.toContain("password.containsPersonalInfo");
       }),
     );
   });

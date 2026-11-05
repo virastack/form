@@ -13,6 +13,14 @@ const shared: Options = {
 export default defineConfig([
   // The hook entry runs on the client only.
   { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
+  // React Hook Form binding; its own entry so the root stays free of react-hook-form.
+  {
+    ...shared,
+    entry: { form: "src/form.ts" },
+    clean: false,
+    external: [...(shared.external ?? []), "react-hook-form"],
+    banner: { js: '"use client";' },
+  },
   // No React and no "use client": the same policy runs in the form, in Server Components and in Actions.
   // One block per entry, so each declaration file is self-contained.
   { ...shared, entry: { strength: "src/strength/index.ts" }, clean: false },

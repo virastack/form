@@ -22,7 +22,8 @@
 
 - **Headless:** Props for your `<input>` and `<button>`; the bar, colours and text stay yours.
 - **Radix parity:** Hides on submit for password managers, focus returns to the input after a click, controlled `visible`, Caps Lock, `autoComplete`.
-- **Strength, NIST style:** `@virastack/password/strength` checks length (15–64), common passwords, repetition and personal info. No composition rules by default.
+- **Strength, NIST style:** `@virastack/password/strength` checks length (15–64, or 8 with a second factor), common passwords, repetition and personal info. The level grows with length, never with character classes.
+- **React Hook Form binding:** `@virastack/password/form` registers the password and confirm fields and keeps them checked against each other.
 - **Same rules on the server:** `@virastack/password/server` runs the same policy in Server Actions.
 - **Leaked password check:** `@virastack/password/pwned` asks Have I Been Pwned with k-anonymity. Optional.
 - **Error keys, not messages:** `password.tooShort`, `password.mismatch`… Map them in your own i18n.
@@ -34,7 +35,7 @@
 npm install @virastack/password
 ```
 
-Requires React and React DOM 18.2+ (React 19 supported). Upgrading from 1.0? Nothing breaks; see the [upgrade guide](https://virastack.com/password/docs/upgrade).
+Requires React and React DOM 18.2+ (React 19 supported); `@virastack/password/form` also needs React Hook Form 7.55+. Upgrading? See the [upgrade guide](https://virastack.com/password/docs/upgrade).
 
 ```tsx
 import { useViraPassword } from "@virastack/password";
@@ -60,38 +61,39 @@ export const policy = definePolicy(); // NIST: 15–64 characters
 ```
 
 ```tsx
-import { useViraPassword } from "@virastack/password";
-import { useForm, useWatch } from "react-hook-form";
+import { useViraPasswordForm } from "@virastack/password/form";
+import { useForm } from "react-hook-form";
 import { policy } from "@/lib/password-policy";
 
 function Signup() {
   const form = useForm({ defaultValues: { email: "", password: "", confirm: "" } });
-  const [email, password, confirmValue] = useWatch({ control: form.control, name: ["email", "password", "confirm"] });
-
-  const pw = useViraPassword({ policy, value: password, forbidden: [email] });
-  const confirm = useViraPassword({ matchWith: password, value: confirmValue });
+  const { password, confirm } = useViraPasswordForm(form, {
+    name: "password",
+    confirm: "confirm",
+    policy,
+    forbidden: ["email"], // field names
+  });
 
   return (
     <form method="post" onSubmit={form.handleSubmit(console.log)}>
       <input type="email" autoComplete="username" {...form.register("email")} />
 
-      {/* deps re-checks the confirm field when the password changes */}
-      <input {...pw.inputProps} {...form.register("password", { ...pw.rule, deps: ["confirm"] })} />
-      <button {...pw.btnProps} />
-      <p {...pw.strengthProps}>{pw.strength?.level}</p>
-      {pw.capsLock && <p>Caps Lock is on</p>}
+      <input {...password.inputProps} />
+      <button {...password.btnProps} />
+      <p {...password.strengthProps}>{password.strength?.level}</p>
+      {password.capsLock && <p>Caps Lock is on</p>}
 
-      <input {...confirm.inputProps} {...form.register("confirm", confirm.rule)} />
+      <input {...confirm.inputProps} />
       <button {...confirm.btnProps} />
     </form>
   );
 }
 ```
 
-- `inputProps` only holds attributes (no ref, no handlers), so spread it before or after `register()` or a ViraStack Mask field.
-- Pass `value` from `useWatch()`: `reset()` and `setValue()` don't fire input events.
-- `deps` only runs on user input. After `setValue("password", …)`, call `trigger("confirm")`.
+- `inputProps` already include `register()`; spread them alone.
+- Values come from `useWatch()`, so `reset()` and `setValue()` update the strength. The confirm field is re-checked when the password changes, and the password when the email changes, once the user has left the field or submitted.
 - `method="post"`: a submit before hydration never puts the password in the URL.
+- Without React Hook Form, or to share an input with a ViraStack Mask field, use `useViraPassword` with `value` and `rule` (below).
 
 ## Options
 
@@ -103,6 +105,7 @@ function Signup() {
 | `autoComplete` | Default `current-password`; `new-password` with `policy` or `matchWith`; `false` leaves it out |
 | `policy`, `forbidden` | Strength policy and values the password must not contain |
 | `matchWith` | The password a confirm field must repeat |
+| `normalization` | `"NFKC"` (default) or `"NFC"` for the `matchWith` comparison; follows `policy` when set |
 | `value` | Current value, e.g. from `useWatch()` |
 | `disabled`, `readOnly` | Disable the toggle and mirror the state on the input |
 | `icons` | `{ show, hide }` custom icons |
@@ -135,9 +138,12 @@ evaluate("correct horse battery staple", policy, { forbidden: ["omer@example.com
 | Preset | Length | Composition |
 | :--- | :--- | :--- |
 | `nist` (default) | 15–64 | none, per NIST SP 800-63B-4 |
-| `legacy` | 8–64 | lowercase, uppercase, digit and symbol |
+| `mfa` | 8–64 | none; the password is used with a second factor |
+| `legacy` (deprecated) | 8–64 | lowercase, uppercase, digit and symbol |
 
-Passwords are normalized with NFKC and counted in code points (emoji and Turkish letters count once); nothing is cut at the limit. `forbidden` splits emails (local part) and names into parts; parts shorter than `minTokenLength` (default 3) are ignored. Raise it if short names cause false positives.
+- **Level:** a valid password is `fair` at the minimum length, `good` from 5 characters more and `strong` from 10 more. Character classes don't change it.
+- **Whole-password checks:** common passwords, `blocklist` and `forbidden` compare the whole password after removing digits, symbols, leetspeak and repetition. "ali1990" fails for the name "Ali"; "kaliteli-sabah-kahvesi" does not. `forbidden` splits emails (local part) and names into parts; parts shorter than `minTokenLength` (default 3) are ignored.
+- **Normalization:** NFKC by default, so full-width letters and ligatures match their plain form. `normalization: "NFC"` follows NIST's recommendation; switching changes the normalized password you hash. Length counts code points (emoji and Turkish letters count once); nothing is cut at the limit.
 
 Don't block pasting into password fields: password managers rely on it.
 
@@ -149,15 +155,18 @@ import { validatePassword } from "@virastack/password/server";
 import { policy } from "@/lib/password-policy";
 
 export async function signup(formData: FormData) {
-  const result = validatePassword(formData.get("password"), policy, {
+  const result = await validatePassword(formData.get("password"), policy, {
     forbidden: [formData.get("email")],
     confirm: formData.get("confirm"),
+    pwned: { timeout: 3000 }, // optional: also checks Have I Been Pwned, see below
   });
   if (!result.valid) return { errors: result.issues };
-  // hash result.password (NFKC-normalized), then create the user
+  // hash result.password (normalized with the policy), then create the user
   return { ok: true };
 }
 ```
+
+Without `pwned`, `validatePassword` is synchronous. With it, a breached password gets `password.pwned`; a failed lookup never blocks.
 
 The root import has `"use client"`. In Server Components and Actions, import from `/server` or `/strength`.
 

@@ -11,7 +11,7 @@ import { definePolicy } from "../src/strength";
 type Values = { phone: string; password: string; confirm: string };
 
 const policy = definePolicy();
-const STRONG = "vu7#Kq2!mz9@Lw4X";
+const STRONG = "vu7#Kq2!mz9@Lw4X-bt5Rn8Jy";
 
 describe("with @virastack/mask v2", () => {
   let form!: UseFormReturn<Values>;

@@ -1,6 +1,7 @@
 import { COMMON } from "./common";
 import type {
   EvaluateOptions,
+  Normalization,
   PasswordChecks,
   PasswordIssue,
   Policy,
@@ -27,8 +28,12 @@ const LEVELS: readonly StrengthLevel[] = ["weak", "weak", "fair", "good", "stron
 
 let common: Set<string> | undefined;
 
-/** NFKC, so visually identical input from different keyboards compares and hashes the same. */
-export const normalizePassword = (password: string): string => password.normalize("NFKC");
+/**
+ * NFKC by default, so visually identical input from different keyboards (full-width, ligatures)
+ * compares and hashes the same. Pass `"NFC"` for NIST SP 800-63B-4's recommendation.
+ */
+export const normalizePassword = (password: string, form: Normalization = "NFKC"): string =>
+  password.normalize(form);
 
 const codePoints = (value: string): string[] => Array.from(value.replace(ZERO_WIDTH, ""));
 
@@ -55,10 +60,23 @@ const unit = (value: string): string => {
   return chars.slice(0, period(chars)).join("");
 };
 
-/** "P@ssw0rd2024!" → "password"; "summer2024summer" → "summer". Digits inside are leetspeak or separators. */
-const commonCores = (folded: string): string[] => {
+/**
+ * What the whole password reduces to: "P@ssw0rd2024!" → "password", "summer2024summer" → "summer",
+ * "ali1990" → "ali". Digits inside are leetspeak or separators. Used for every list check, so a
+ * password is compared as a whole (NIST SP 800-63B-4), never searched for words it contains.
+ */
+const cores = (folded: string): string[] => {
+  // Digits after the last letter are a suffix ("ali1990"), not leetspeak; the ones before may be ("4li").
   const trimmed = folded.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
-  return [deLeet(trimmed), trimmed].map((core) => unit(core.replace(/[^\p{L}]/gu, "")));
+  const bases = [
+    deLeet(folded.replace(/[^\p{L}]+$/u, "")).replace(/[^\p{L}]/gu, ""),
+    deLeet(trimmed).replace(/[^\p{L}]/gu, ""),
+    trimmed.replace(/[^\p{L}]/gu, ""),
+    folded.replace(/[^\p{L}\p{N}]/gu, ""),
+  ];
+  // Both the base and its repeating unit: "summersummer" → "summer", while "salsa" stays "salsa"
+  // although its unit is "sal".
+  return [...new Set(bases.flatMap((base) => [base, unit(base)]))].filter(Boolean);
 };
 
 const isSequence = (folded: string): boolean => {
@@ -74,17 +92,24 @@ const isRepetitive = (chars: string[], folded: string): boolean => {
   // Fewer than 4 distinct characters; short inputs need half of theirs.
   if (new Set(chars).size < Math.min(4, Math.ceil(chars.length / 2))) return true;
   if (period(chars) <= chars.length / 3) return true;
+  // Runs of one character: "aaaabbbbccccdddd" is "abcd" typed slowly.
+  const runs = chars.filter((char, i) => char !== chars[i - 1]);
+  if (runs.length <= chars.length / 2) return true;
   return isSequence(folded);
 };
 
-/** Splits emails (local part only), names and usernames into lowercase parts. */
+/** Splits emails (local part only), names and usernames into lowercase parts, separators removed. */
 export const personalTokens = (forbidden: readonly unknown[], minTokenLength: number): string[] => {
   const tokens = new Set<string>();
   for (const value of forbidden) {
     if (typeof value !== "string") continue;
     const at = value.lastIndexOf("@");
     const source = fold(at > 0 ? value.slice(0, at) : value).trim();
-    const parts = [source, ...source.split(/[^\p{L}\p{N}]+|(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})/u)];
+    const parts = [
+      source.replace(/[^\p{L}\p{N}]/gu, ""),
+      source.replace(/[^\p{L}]/gu, ""),
+      ...source.split(/[^\p{L}\p{N}]+|(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})/u),
+    ];
     for (const part of parts) {
       if (Array.from(part).length >= minTokenLength) tokens.add(part);
     }
@@ -92,11 +117,8 @@ export const personalTokens = (forbidden: readonly unknown[], minTokenLength: nu
   return [...tokens];
 };
 
-const containsAny = (folded: string, words: readonly string[]): boolean => {
-  if (words.length === 0) return false;
-  const variants = [folded, deLeet(folded), folded.replace(/[^\p{L}\p{N}]/gu, "")];
-  return words.some((word) => variants.some((variant) => variant.includes(word)));
-};
+const matchesAny = (passwordCores: readonly string[], words: readonly string[]): boolean =>
+  words.length > 0 && passwordCores.some((core) => words.includes(core));
 
 const scoreFor = (chars: string[], issues: PasswordIssue[], minLength: number): StrengthScore => {
   if (chars.length === 0) return 0;
@@ -106,21 +128,16 @@ const scoreFor = (chars: string[], issues: PasswordIssue[], minLength: number): 
     );
     return severe || chars.length < minLength / 2 ? 0 : 1;
   }
-  let pool = 0;
-  const text = chars.join("");
-  if (/\p{Ll}/u.test(text)) pool += 26;
-  if (/\p{Lu}/u.test(text)) pool += 26;
-  if (/\p{Nd}/u.test(text)) pool += 10;
-  if (/[\p{P}\p{S}\p{Zs}]/u.test(text)) pool += 33;
-  if (/[^\p{Ll}\p{Lu}\p{Nd}\p{P}\p{S}\p{Zs}]/u.test(text)) pool += 100;
-  // Repeated characters add little; count each distinct one at most twice.
+  // Length past the minimum, never character classes: NIST SP 800-63B-4 drops composition rules,
+  // so an uppercase letter or a digit must not buy a better level. Repeated characters add little;
+  // each distinct one counts at most twice.
   const effective = Math.min(chars.length, new Set(chars).size * 2);
-  const bits = effective * Math.log2(Math.max(pool, 2));
-  return bits >= 100 ? 4 : bits >= 80 ? 3 : 2;
+  const extra = effective - minLength;
+  return extra >= 10 ? 4 : extra >= 5 ? 3 : 2;
 };
 
 const evaluateWith = (policy: Policy, input: unknown, options: EvaluateOptions = {}): StrengthResult => {
-  const password = typeof input === "string" ? normalizePassword(input) : "";
+  const password = typeof input === "string" ? normalizePassword(input, policy.normalization) : "";
   const chars = codePoints(password);
   const folded = fold(password);
   const { require } = policy;
@@ -148,16 +165,17 @@ const evaluateWith = (policy: Policy, input: unknown, options: EvaluateOptions =
 
   // Far past the limit the answer is "too long" anyway; skip the pattern checks on huge input.
   const huge = password.length > policy.maxLength * 4;
+  const passwordCores = huge ? [] : cores(folded);
   if (chars.length >= 4 && !huge) {
     if (policy.blockCommon) {
       const list = (common ??= new Set(COMMON.split(" ")));
-      checks.notCommon = !commonCores(folded).some((core) => list.has(core));
+      checks.notCommon = !passwordCores.some((core) => list.has(core));
     }
-    checks.notBlocked = !containsAny(folded, policy.blocklist);
+    checks.notBlocked = !matchesAny(passwordCores, policy.blocklist);
     if (policy.blockRepetitive) checks.notRepetitive = !isRepetitive(Array.from(folded), folded);
   }
   if (chars.length > 0 && options.forbidden && !huge) {
-    checks.notPersonal = !containsAny(folded, personalTokens(options.forbidden, policy.minTokenLength));
+    checks.notPersonal = !matchesAny(passwordCores, personalTokens(options.forbidden, policy.minTokenLength));
   }
 
   if (!checks.notCommon) issues.push("password.common");
@@ -171,6 +189,8 @@ const evaluateWith = (policy: Policy, input: unknown, options: EvaluateOptions =
 
 const PRESETS = {
   nist: { minLength: 15, maxLength: 64, require: {} },
+  // NIST SP 800-63B-4: 8 characters are enough when the password is one factor of several.
+  mfa: { minLength: 8, maxLength: 64, require: {} },
   legacy: { minLength: 8, maxLength: 64, require: { lowercase: true, uppercase: true, digit: true, symbol: true } },
 } as const;
 
@@ -186,6 +206,10 @@ export const definePolicy = (options: PolicyOptions = {}): Policy => {
   const minLength = options.minLength ?? base.minLength;
   const maxLength = options.maxLength ?? base.maxLength;
   const minTokenLength = options.minTokenLength ?? 3;
+  const normalization = options.normalization ?? "NFKC";
+  if (normalization !== "NFKC" && normalization !== "NFC") {
+    throw new RangeError(`definePolicy: normalization must be "NFKC" or "NFC", got "${String(normalization)}"`);
+  }
   assertLength("minLength", minLength);
   assertLength("maxLength", maxLength);
   assertLength("minTokenLength", minTokenLength);
@@ -209,6 +233,7 @@ export const definePolicy = (options: PolicyOptions = {}): Policy => {
     blockRepetitive: options.blockRepetitive ?? true,
     blocklist: Object.freeze((options.blocklist ?? []).map((word) => fold(word).replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean)),
     minTokenLength,
+    normalization,
     evaluate: (password: string, evaluateOptions?: EvaluateOptions) => evaluateWith(policy, password, evaluateOptions),
   });
   return policy;

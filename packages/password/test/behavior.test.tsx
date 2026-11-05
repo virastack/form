@@ -467,7 +467,7 @@ describe("attribute-only inputProps (regression: 1.1 must not break 1.0 spreads)
       );
     }
     render(<Signup />);
-    await userEvent.type(input(), "vu7#Kq2!mz9@Lw4X");
+    await userEvent.type(input(), "vu7#Kq2!mz9@Lw4X-bt5Rn8Jy");
     expect(screen.getByTestId("level")).toHaveTextContent("strong");
   });
 

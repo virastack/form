@@ -1,5 +1,26 @@
 # @virastack/password
 
+## 1.2.0
+
+The policy now follows NIST SP 800-63B-4 more closely. The API stays the same, but the same password can get a different result, so check your tests that pin a `level` or an issue.
+
+### Added
+
+- **`@virastack/password/form`**: `useViraPasswordForm(form, { name, confirm, policy, forbidden })` binds the hook to React Hook Form. It registers the fields with their rules and reads values with `useWatch`, so `reset()` and `setValue()` work. It re-checks the confirm field when the password changes and the password when a `forbidden` field changes, so `value`, `deps` and `trigger` are no longer needed. `forbidden` takes field names. `react-hook-form` is an optional peer; the root entry stays without it.
+- **`mfa` preset**: 8–64 characters without composition rules, for a password used with a second factor (NIST SP 800-63B-4).
+- **`normalization` policy option**: `"NFKC"` (default, as before) or `"NFC"`, which NIST recommends. `normalizePassword(password, form)` and the hook's `normalization` option follow it. Changing it changes the normalized password you hash.
+- **`validatePassword(..., { pwned })`**: also looks the password up in Have I Been Pwned when it passes the policy, and returns a Promise. A breached password gets `password.pwned` and score 0; a failed lookup never blocks (`pwned.status` is `unknown`).
+
+### Changed
+
+- **Whole-password comparison**: `forbidden` values and the `blocklist` are compared with the whole password after removing digits, symbols, leetspeak and repetition, as NIST asks, instead of being searched inside it. "ali1990" still fails for "Ali Can"; "kalitelibirsabahkahvesi" no longer does, and neither does "my-acme-account" with `blocklist: ["acme"]`.
+- **Score by length, not character classes**: valid passwords are `fair` at the minimum, `good` from 5 characters more and `strong` from 10 more. An uppercase letter, a digit or a symbol no longer raises the level, which nudged users towards composition rules. Repeated characters still add little.
+- **Repetition**: runs of one character such as "aaaabbbbccccdddd" are rejected as `password.repetitive`.
+
+### Deprecated
+
+- **`legacy` preset**: composition rules go against NIST SP 800-63B-4. It still works; use `require` if you must keep them.
+
 ## 1.1.1
 
 ### Changed
