@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
 </a>
 
-*Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN) and server validation*
+*Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN, plate) and server validation*
 
 [![ViraStack Mask](https://img.shields.io/badge/ViraStack-Mask-%23605efe)](https://virastack.com/mask/)
 [![npm version](https://img.shields.io/npm/v/@virastack/mask)](https://www.npmjs.com/package/@virastack/mask)
@@ -22,7 +22,7 @@
 
 - **Built for React Hook Form:** The form keeps the raw value (`5551234567`); the input shows the mask. `register` rules, `reset`, `setValue`, `watch`, `Controller` and resolvers keep working.
 - **Type-safe:** Field names, `from` links and rules are checked against your form type. No `any`.
-- **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, TRY with kuruş, and the bank behind an IBAN.
+- **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, registration plates, TRY with kuruş, and the bank behind an IBAN.
 - **Server support:** `@virastack/mask/server` parses and validates the same schema in Server Actions.
 - **Zero dependencies:** under 10 KB min+brotli for everything; less once tree-shaken.
 
@@ -69,6 +69,7 @@ export function Checkout() {
 | `cvv` | 3 digits, 4 for Amex (with `from: "card"`) | `123` |
 | `expiry` | `12/28`, past months are invalid | `1228` |
 | `tckn`, `vkn` | `10000000146` | `10000000146` |
+| `plate` | `34 ABC 123`, province 01–81 and the official letter and digit groups | `34ABC123` |
 | `fullName` | `Ömer Gülçiçek`, letters and single spaces | `Ömer Gülçiçek` |
 | `currency` | `1,234.56`; with a code `$1,234.56` (Intl) | `1234.56` |
 | `currency` + `country: "TR"` | `₺1.234,56` | `1234.56` |
@@ -92,7 +93,7 @@ useViraMask(form, {
   // nested field
   zip: { name: "address.zip", mask: "99999" },
   // custom pattern: 9 digit, a letter, * letter or digit, [optional], {kept in value}, \ escape
-  plate: { mask: "99 a[aa] 99[99]", transform: "uppercase" },
+  orderNo: { mask: "aa-9999[9]", transform: "uppercase" },
   // fires when the mask is full
   card: { preset: "card", onComplete: () => form.setFocus("expiry") },
 });
@@ -132,8 +133,9 @@ The root import has `"use client"`. In Server Components and Actions, import fro
 ```ts
 import { createMask, definePreset, toMinorUnits } from "@virastack/mask/server";
 
-const plate = definePreset("plate", { mask: "99 a[aa] 99[99]", transform: "uppercase" });
-createMask(plate).format("34abc123"); // "34 ABC 123"
+const orderNo = definePreset("orderNo", { mask: "aa-9999", transform: "uppercase" });
+createMask(orderNo).format("ab1234"); // "AB-1234"
+createMask("plate").format("34abc123"); // "34 ABC 123"
 createMask({ preset: "currency", country: "TR" }).format("1234.5"); // "₺1.234,5"
 toMinorUnits("1234.56", "TRY"); // 123456
 ```

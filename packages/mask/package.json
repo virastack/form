@@ -91,6 +91,7 @@
     "credit-card",
     "currency",
     "tckn",
+    "plate",
     "vkn",
     "turkey",
     "server-actions",
@@ -148,7 +149,7 @@
       "name": "@virastack/mask (getTurkishBank only)",
       "path": "dist/index.mjs",
       "import": "{ getTurkishBank }",
-      "limit": "2.5 kB"
+      "limit": "1 kB"
     },
     {
       "name": "@virastack/mask/server",

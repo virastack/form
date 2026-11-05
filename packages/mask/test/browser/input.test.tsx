@@ -104,4 +104,20 @@ describe("in a real browser", () => {
     await userEvent.type(page.getByLabelText("cvv"), "12345");
     expect(el("cvv").value).toBe("1234");
   });
+
+  it("types a plate with a Turkish keyboard's ı and keeps the compact value", async () => {
+    let plateForm!: UseFormReturn<{ plate: string }>;
+    function Plate() {
+      plateForm = useForm<{ plate: string }>({ defaultValues: { plate: "" } });
+      const { plate } = useViraMask(plateForm, { plate: "plate" });
+      return <input aria-label="plate" {...plate} />;
+    }
+    await render(<Plate />);
+    await userEvent.type(page.getByLabelText("plate"), "34 kıl 123");
+    expect(el("plate").value).toBe("34 KIL 123");
+    expect(plateForm.getValues("plate")).toBe("34KIL123");
+    await userEvent.keyboard("{Backspace}{Backspace}");
+    expect(el("plate").value).toBe("34 KIL 1");
+    expect(plateForm.getValues("plate")).toBe("34KIL1");
+  });
 });

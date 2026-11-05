@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   createMask,
   definePreset,
+  isValidPlate,
   maskResolver,
   parseMasked,
   useViraMask,
@@ -11,6 +12,7 @@ import {
   type MaskField,
   type MaskOptions,
   type Preset,
+  type PresetName,
 } from "../src";
 
 describe("types", () => {
@@ -96,6 +98,16 @@ describe("types", () => {
     const { phone, price } = useViraMask(form, { phone: { preset: "phone", country: "TR" }, price: "currency" });
     expectTypeOf(phone).toEqualTypeOf<MaskField>();
     expectTypeOf(price.onChange).toBeFunction();
+  });
+
+  it("plate is a built-in preset name", () => {
+    expectTypeOf<"plate">().toExtend<PresetName>();
+    expectTypeOf(isValidPlate).toEqualTypeOf<(value: string) => boolean>();
+    const form = useForm<{ plate: string }>();
+    useViraMask(form, { plate: "plate" });
+    useViraMask(form, { plate: { preset: "plate", rules: { required: "plate.required" } } });
+    // @ts-expect-error plate has no country layout
+    useViraMask(form, { plate: { preset: "plate", country: "TR" } });
   });
 
   it("definePreset keeps its kind", () => {

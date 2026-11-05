@@ -5,6 +5,7 @@ export {
   isValidCard,
   isValidIBAN,
   isValidLuhn,
+  isValidPlate,
   isValidTCKN,
   isValidVKN,
   type CardType,

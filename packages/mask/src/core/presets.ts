@@ -1,5 +1,5 @@
 import type { MaskContext, MaskKind, MaskOptions, Preset } from "./types";
-import { getCardType, isValidIBAN, isValidLuhn, isValidTCKN, isValidVKN } from "./validators";
+import { getCardType, isValidIBAN, isValidLuhn, isValidPlate, isValidTCKN, isValidVKN, toPlateLetter } from "./validators";
 
 export type KindOfOptions<O> = O extends { mask: unknown }
   ? "pattern"
@@ -17,11 +17,12 @@ export function kindOf(options: MaskOptions): MaskKind {
 }
 
 /**
- * Defines a reusable mask under a name. The name also prefixes its error keys (`plate.incomplete`).
+ * Defines a reusable mask under a name. The name also prefixes its error keys (`orderNo.incomplete`).
  *
  * @example
- * export const plate = definePreset("plate", { mask: "99 a[aa] 99[99]", transform: "uppercase" });
+ * export const orderNo = definePreset("orderNo", { mask: "aa-9999", transform: "uppercase" });
  */
+/* @__NO_SIDE_EFFECTS__ */
 export function definePreset<const O extends MaskOptions>(name: string, options: O): Preset<KindOfOptions<O>> {
   return Object.freeze({ name, kind: kindOf(options), options }) as unknown as Preset<KindOfOptions<O>>;
 }
@@ -108,6 +109,26 @@ const vkn = definePreset("vkn", {
   autoComplete: "off",
 });
 
+/**
+ * Turkish registration plate, `34 ABC 123`; the value has no spaces (`34ABC123`). Once a digit
+ * follows the letters, the letter count fixes how many digits are needed (article 34 of the
+ * vehicle registration regulation): 1 letter → 4–5, 2 → 3–4, 3 → 2–3.
+ */
+const plate = definePreset("plate", {
+  mask: (value: string) => {
+    const groups = /^\d{0,2}(\p{L}+)\d/u.exec(value.replace(/[^\p{L}\d]/gu, ""));
+    const letters = groups ? Math.min(groups[1].length, 3) : 0;
+    if (letters === 1) return "99 L 9999[9]";
+    if (letters === 2) return "99 LL 999[9]";
+    if (letters === 3) return "99 LLL 99[9]";
+    return "99 L[LL] 99[999]";
+  },
+  tokens: { L: { pattern: /[A-Za-zıİ]/, transform: toPlateLetter } },
+  validate: (value: string) => isValidPlate(value),
+  inputMode: "text",
+  autoComplete: "off",
+});
+
 /** Two decimals without a symbol (`1,234.56`); pass a code or `country` for one. */
 const currency = definePreset("currency", { currency: {}, autoComplete: "off" });
 /**
@@ -128,7 +149,8 @@ const number = definePreset("number", { number: {}, autoComplete: "off" });
 const numberTR = definePreset("number", { number: { locale: "tr-TR" }, autoComplete: "off" });
 const date = definePreset("date", { date: { format: "DD/MM/YYYY" } });
 
-export const presets = Object.freeze({
+// Pure, so a bundle that only imports getTurkishBank or a validator drops the presets.
+export const presets = /* @__PURE__ */ Object.freeze({
   phone,
   iban,
   card,
@@ -136,6 +158,7 @@ export const presets = Object.freeze({
   expiry,
   tckn,
   vkn,
+  plate,
   fullName,
   currency,
   number,
@@ -152,7 +175,7 @@ export type Country = "TR";
 /** Presets that take a `country` option. */
 export type CountryPresetName = "phone" | "iban" | "currency" | "number";
 
-export const countryPresets: Readonly<Record<CountryPresetName, Readonly<Record<Country, Preset>>>> = Object.freeze({
+export const countryPresets: Readonly<Record<CountryPresetName, Readonly<Record<Country, Preset>>>> = /* @__PURE__ */ Object.freeze({
   phone: { TR: phoneTR },
   iban: { TR: ibanTR },
   currency: { TR: currencyTR },

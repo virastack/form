@@ -71,6 +71,27 @@ export function isValidVKN(value: string): boolean {
 }
 
 /**
+ * Plate letter groups use the Latin alphabet. A Turkish keyboard types `i`, `ı` and `İ` for the
+ * same key, so all three read as `I`; other letters are uppercased.
+ */
+export function toPlateLetter(char: string): string {
+  return char === "ı" || char === "i" || char === "İ" ? "I" : char.toUpperCase();
+}
+
+/**
+ * Turkish registration plate (`34 ABC 123`). Accepts spaces, hyphens and lowercase.
+ * Province code 01–81, then one of the letter and digit groups of article 34 of the
+ * Araçların Satış, Devir ve Tescil Hizmetlerinin Yürütülmesi Hakkında Yönetmelik:
+ * 1 letter + 4–5 digits, 2 letters + 3–4 digits, 3 letters + 2–3 digits.
+ * Name and trade-name plates (article 37) and special plates (article 36) are not checked.
+ */
+export function isValidPlate(value: string): boolean {
+  const compact = Array.from(value.replace(/[\s-]/g, ""), toPlateLetter).join("");
+  // Inside the function, so bundles that never call it don't carry the pattern.
+  return /^(?:0[1-9]|[1-7]\d|8[01])(?:[A-Z]\d{4,5}|[A-Z]{2}\d{3,4}|[A-Z]{3}\d{2,3})$/.test(compact);
+}
+
+/**
  * IBAN length per country, from the SWIFT IBAN registry.
  * Countries not listed are checked with the generic 15–34 rule.
  */

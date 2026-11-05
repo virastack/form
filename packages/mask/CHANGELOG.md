@@ -8,6 +8,11 @@
 - **`generateTCKN({ seed })`**: a TCKN that passes `isValidTCKN`. The check digits use the same rule as `isValidTCKN`; no list is kept.
 - **`generateIBAN(country = "TR", { bank, seed })`**: an IBAN without spaces that passes `isValidIBAN`. A Turkish IBAN follows the national layout with a bank from `turkishBanks` (`bank: "0062"` picks Garanti), so `getTurkishBank` finds its bank. Other countries in the IBAN registry get a digits-only account part of the registry length: it passes the length and mod-97 checks, not national rules such as letters in a UK bank code. An unknown country, an unknown bank code or `bank` outside Turkey throws.
 - **`seed` option**: an integer seed gives the same value on every run and platform (mulberry32, no dependency). Each generator keeps its own stream, so one seed gives unrelated digits for a TCKN and an IBAN.
+- **`plate` preset and `isValidPlate()`**: Turkish registration plates, shown as `34 ABC 123` and stored as `34ABC123`. The rules come from article 34 of the [Araçların Satış, Devir ve Tescil Hizmetlerinin Yürütülmesi Hakkında Yönetmelik](https://www.mevzuat.gov.tr/anasayfa/MevzuatFihristDetayIframe?MevzuatTur=7&MevzuatNo=24356&MevzuatTertip=5): province code 01–81, then 1 letter and 4–5 digits, 2 letters and 3–4 digits, or 3 letters and 2–3 digits. Once a digit follows the letters, the mask asks for the right number of digits, so `34 AB 12` is `plate.incomplete` and `82 AB 123` is `plate.invalid`. Letters are the Latin A–Z; the regulation excludes none, so Q, W and X pass, and a Turkish keyboard's `ı` and `i` become `I`. Name and trade-name plates (article 37) and special plates (article 36) are not checked.
+
+### Fixed
+
+- **Bundles that only import `getTurkishBank`** no longer carry every preset: the presets are marked pure, so that import drops from 2.3 KB to under 1 KB.
 
 ## 2.2.0
 
