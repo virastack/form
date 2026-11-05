@@ -7,8 +7,10 @@ import { SignupForm } from "./signup-form";
 const rows = [
   ["short", validatePassword("short", policy).issues.join(",")],
   ["common", evaluate("passwordpassword", policy).issues.join(",")],
-  ["blocked", evaluate("my-acme-account-pw", policy).issues.join(",")],
-  ["strong", evaluate("vu7#Kq2!mz9@Lw4X", policy).level],
+  // 1.2: the blocklist is compared with the whole password after removing digits and symbols.
+  ["blocked", evaluate("ACME2024!acme2024!", policy).issues.join(",")],
+  // 1.2: the level grows with length only; 10 characters over the minimum (15) is strong.
+  ["strong", evaluate("vu7#Kq2!mz9@Lw4X-bt5Rn8Jy", policy).level],
 ];
 
 export default function Page() {

@@ -91,7 +91,7 @@ async function checks(base, mode) {
   check("issue keys", await text("issues"), "password.tooShort");
   await field("password").fill("");
   await field("password").click();
-  await page.keyboard.type("vu7#Kq2!mz9@Lw4X", { delay: 5 });
+  await page.keyboard.type("vu7#Kq2!mz9@Lw4X-bt5Rn8Jy", { delay: 5 });
   check("strong password", await text("level"), "strong");
 
   await page.getByRole("button", { name: "Show password" }).click();
@@ -99,21 +99,21 @@ async function checks(base, mode) {
   check("focus returns to the input", await page.evaluate(() => document.activeElement?.getAttribute("name")), "password");
 
   await field("confirm").click();
-  await page.keyboard.type("vu7#Kq2!mz9@Lw4", { delay: 5 });
+  await page.keyboard.type("vu7#Kq2!mz9@Lw4X-bt5Rn8J", { delay: 5 });
   check("confirm mismatch", await text("matches"), "false");
-  await page.keyboard.type("X");
+  await page.keyboard.type("y");
   check("confirm match", await text("matches"), "true");
 
   await submit();
   check("server action accepts", (await result()).valid, true);
   check("submit hid the password", await field("password").getAttribute("type"), "password");
 
-  // Personal info on the server.
-  await field("password").fill("omer-garden-path-long");
-  await field("confirm").fill("omer-garden-path-long");
+  // Personal info on the server: the email's local part repeated with digits and symbols (1.2 compares the whole password).
+  await field("password").fill("Omer.2024.Omer.2024!");
+  await field("confirm").fill("Omer.2024.Omer.2024!");
   await page.evaluate(() => (document.querySelector('[data-testid="result"]').textContent = "null"));
   await submit();
-  check("server rejects personal info", (await result()).issues?.[0], "password.containsPersonalInfo");
+  check("server rejects personal info", (await result()).issues, (issues) => issues?.includes("password.containsPersonalInfo"));
 
   await field("confirm").fill("something-else-entirely");
   await page.evaluate(() => (document.querySelector('[data-testid="result"]').textContent = "null"));
