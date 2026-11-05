@@ -11,12 +11,14 @@ const shared: Options = {
   outExtension: ({ format }) => ({ js: format === "cjs" ? ".cjs" : ".mjs" }),
 };
 
+// tsup runs these blocks in parallel, so none of them cleans dist: a clean in one block could delete
+// files another block already wrote. The build script empties dist first.
 export default defineConfig([
   // The hook entry runs on the client only.
-  { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
+  { ...shared, entry: { index: "src/index.ts" }, banner: { js: '"use client";' } },
   // No React and no "use client": the same policy runs in the form, in Server Components and in Actions.
   // One block per entry, so each declaration file is self-contained.
-  { ...shared, entry: { strength: "src/strength/index.ts" }, clean: false },
-  { ...shared, entry: { server: "src/server.ts" }, clean: false },
-  { ...shared, entry: { pwned: "src/pwned.ts" }, clean: false },
+  { ...shared, entry: { strength: "src/strength/index.ts" } },
+  { ...shared, entry: { server: "src/server.ts" } },
+  { ...shared, entry: { pwned: "src/pwned.ts" } },
 ]);

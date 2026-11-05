@@ -30,10 +30,12 @@ const shared: Options = {
   outExtension: ({ format }) => ({ js: format === "esm" ? ".mjs" : ".cjs" }),
 };
 
+// tsup runs these blocks in parallel, so none of them cleans dist: a clean in one block could delete
+// files another block already wrote. The build script empties dist first.
 export default defineConfig([
-  { ...shared, entry: { index: "src/index.ts" }, clean: true, banner: { js: '"use client";' } },
+  { ...shared, entry: { index: "src/index.ts" }, banner: { js: '"use client";' } },
   // No React and no "use client" below: the dataset and the lookups run anywhere,
   // in Server Components, Actions, a CLI or another framework entirely.
-  { ...shared, entry: { data: "src/data.ts" }, clean: false },
-  { ...shared, entry: { server: "src/server.ts" }, clean: false },
+  { ...shared, entry: { data: "src/data.ts" } },
+  { ...shared, entry: { server: "src/server.ts" } },
 ]);

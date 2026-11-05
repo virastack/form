@@ -67,7 +67,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup && node ../mask/scripts/cjs-types.mjs",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsup && node ../mask/scripts/cjs-types.mjs",
     "dev": "tsup --watch",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
