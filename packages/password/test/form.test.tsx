@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
-import { useViraPasswordForm } from "../src/form";
+import { useViraPassword } from "../src";
 import { definePolicy } from "../src/strength";
 
 const policy = definePolicy();
@@ -14,7 +14,10 @@ let form!: UseFormReturn<Values>;
 
 function Signup({ onSubmit = () => {} }: { onSubmit?: (values: Values) => void }) {
   form = useForm<Values>({ defaultValues: { email: "selin@example.com", password: "", confirm: "" } });
-  const { password, confirm } = useViraPasswordForm(form, { name: "password", confirm: "confirm", policy, forbidden: ["email"] });
+  const { password, confirm } = useViraPassword(form, {
+    password: { policy, forbidden: ["email"] },
+    confirm: { matchWith: "password" },
+  });
   const { errors } = form.formState;
 
   return (
@@ -33,7 +36,7 @@ function Signup({ onSubmit = () => {} }: { onSubmit?: (values: Values) => void }
 
 const field = (name: string) => screen.getByLabelText(name) as HTMLInputElement;
 
-describe("useViraPasswordForm", () => {
+describe("useViraPassword(form, schema)", () => {
   it("registers both fields: name, value and strength come from the form", async () => {
     render(<Signup />);
     await userEvent.type(field("Password"), STRONG);
@@ -110,25 +113,24 @@ describe("useViraPasswordForm", () => {
     expect(screen.getByRole("status")).toHaveTextContent("weak");
   });
 
-  it("returns confirm as null without the option, and works without a policy", async () => {
-    let result!: ReturnType<typeof useViraPasswordForm<{ password: string }>>;
+  it("works with one field and without a policy", async () => {
+    let result!: { password: ReturnType<typeof useViraPassword> };
     function Login() {
       const login = useForm<{ password: string }>({ defaultValues: { password: "" } });
-      result = useViraPasswordForm(login, { name: "password" });
+      result = useViraPassword(login, { password: {} });
       return <input aria-label="Password" {...result.password.inputProps} />;
     }
     render(<Login />);
-    expect(result.confirm).toBeNull();
     expect(result.password.strength).toBeNull();
     expect(field("Password")).toHaveAttribute("autocomplete", "current-password");
     await userEvent.click(field("Password"));
     expect(field("Password")).toHaveAttribute("type", "password");
   });
 
-  it("passes the shared options to both fields", async () => {
+  it("passes each entry its own options", async () => {
     function Hidden() {
       const f = useForm<Values>({ defaultValues: { email: "", password: "", confirm: "" } });
-      const { password, confirm } = useViraPasswordForm(f, { name: "password", confirm: "confirm", defaultVisible: true });
+      const { password, confirm } = useViraPassword(f, { password: { defaultVisible: true }, confirm: { matchWith: "password" } });
       return (
         <>
           <input aria-label="Password" {...password.inputProps} />
@@ -138,20 +140,80 @@ describe("useViraPasswordForm", () => {
     }
     render(<Hidden />);
     expect(field("Password")).toHaveAttribute("type", "text");
-    expect(field("Confirm")).toHaveAttribute("type", "text");
+    expect(field("Confirm")).toHaveAttribute("type", "password");
   });
 
-  it("compares the confirmation with the policy's normalization", async () => {
+  it("compares the confirmation with the password policy's normalization", async () => {
     const nfc = definePolicy({ normalization: "NFC" });
     let check!: (value: unknown) => unknown;
     function Nfc() {
       const f = useForm<Values>({ defaultValues: { email: "", password: "ｓｅｃｒｅｔ", confirm: "" } });
-      const { confirm } = useViraPasswordForm(f, { name: "password", confirm: "confirm", policy: nfc });
+      const { confirm } = useViraPassword(f, { password: { policy: nfc }, confirm: { matchWith: "password" } });
       check = confirm.rule.validate;
       return null;
     }
     render(<Nfc />);
     expect(check("secret")).toBe("password.mismatch");
     expect(check("ｓｅｃｒｅｔ")).toBe(true);
+  });
+
+  it("maps a key to another field with name, and keeps extra rules", async () => {
+    type Nested = { account: { secret: string } };
+    let nested!: UseFormReturn<Nested>;
+    function Account() {
+      nested = useForm<Nested>({ defaultValues: { account: { secret: "" } } });
+      const { secret } = useViraPassword(nested, { secret: { name: "account.secret", rules: { required: "required" } } });
+      const { errors } = nested.formState;
+      return (
+        <form onSubmit={nested.handleSubmit(() => {})}>
+          <input aria-label="Secret" {...secret.inputProps} />
+          <p data-testid="secret-error">{errors.account?.secret?.message}</p>
+          <button type="submit">Save</button>
+        </form>
+      );
+    }
+    render(<Account />);
+    expect(field("Secret")).toHaveAttribute("name", "account.secret");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.getByTestId("secret-error")).toHaveTextContent("required"));
+    await userEvent.type(field("Secret"), "abc");
+    expect(nested.getValues("account.secret")).toBe("abc");
+  });
+
+  it("runs a validate from rules after the password check", async () => {
+    const onSubmit = vi.fn();
+    function Custom() {
+      const f = useForm<{ password: string }>({ defaultValues: { password: "" } });
+      const { password } = useViraPassword(f, {
+        password: { policy, rules: { validate: (value) => !String(value).includes("acme") || "custom.noAcme" } },
+      });
+      return (
+        <form onSubmit={f.handleSubmit(onSubmit)}>
+          <input aria-label="Password" {...password.inputProps} />
+          <p data-testid="password-error">{f.formState.errors.password?.message}</p>
+          <button type="submit">Save</button>
+        </form>
+      );
+    }
+    render(<Custom />);
+    await userEvent.type(field("Password"), "short");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.getByTestId("password-error")).toHaveTextContent("password.tooShort"));
+    await userEvent.clear(field("Password"));
+    await userEvent.type(field("Password"), `${STRONG}acme`);
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.getByTestId("password-error")).toHaveTextContent("custom.noAcme"));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("keeps the root entry usable without a form", () => {
+    let result!: ReturnType<typeof useViraPassword>;
+    function Plain() {
+      result = useViraPassword({ policy });
+      return <input aria-label="Password" {...result.inputProps} />;
+    }
+    render(<Plain />);
+    expect(result.strength?.level).toBe("weak");
+    expect(field("Password")).not.toHaveAttribute("name");
   });
 });

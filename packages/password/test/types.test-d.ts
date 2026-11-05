@@ -2,7 +2,6 @@ import type React from "react";
 import { describe, expectTypeOf, it } from "vitest";
 import { getInputAriaAttributes, mergeProps, useViraPassword, type UseViraPasswordResult } from "../src";
 import { useForm } from "react-hook-form";
-import { useViraPasswordForm } from "../src/form";
 import { checkPwned, type PwnedResult } from "../src/pwned";
 import { validatePassword, type PasswordValidation } from "../src/server";
 import { definePolicy, evaluate, type PasswordIssue, type Policy, type StrengthResult } from "../src/strength";
@@ -91,16 +90,21 @@ describe("types", () => {
     expectTypeOf(validatePassword("x", policy, { pwned: maybe })).toEqualTypeOf<PasswordValidation | Promise<PasswordValidation>>();
   });
 
-  it("useViraPasswordForm checks field names and types confirm", () => {
-    const form = useForm<{ email: string; password: string; confirm: string }>();
-    const withConfirm = useViraPasswordForm(form, { name: "password", confirm: "confirm", forbidden: ["email"] });
-    expectTypeOf(withConfirm.confirm).toEqualTypeOf<UseViraPasswordResult>();
-    const without = useViraPasswordForm(form, { name: "password" });
-    expectTypeOf(without.confirm).toEqualTypeOf<null>();
+  it("useViraPassword(form, schema) checks field names and returns one result per key", () => {
+    const form = useForm<{ email: string; password: string; confirm: string; user: { secret: string } }>();
+    const fields = useViraPassword(form, { password: { forbidden: ["email"] }, confirm: { matchWith: "password" } });
+    expectTypeOf(fields.password).toEqualTypeOf<UseViraPasswordResult>();
+    expectTypeOf(fields.confirm).toEqualTypeOf<UseViraPasswordResult>();
+    // @ts-expect-error not in the schema
+    void fields.other;
+    useViraPassword(form, { secret: { name: "user.secret" } });
+    // @ts-expect-error a key that is not a field needs name
+    useViraPassword(form, { secret: {} });
     // @ts-expect-error not a field
-    useViraPasswordForm(form, { name: "pasword" });
+    useViraPassword(form, { password: { forbidden: ["mail"] } });
     // @ts-expect-error not a field
-    useViraPasswordForm(form, { name: "password", forbidden: ["mail"] });
+    useViraPassword(form, { confirm: { matchWith: "pasword" } });
+    expectTypeOf(useViraPassword({})).toEqualTypeOf<UseViraPasswordResult>();
   });
 
   it("policy presets", () => {

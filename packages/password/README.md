@@ -23,11 +23,11 @@
 - **Headless:** Props for your `<input>` and `<button>`; the bar, colours and text stay yours.
 - **Radix parity:** Hides on submit for password managers, focus returns to the input after a click, controlled `visible`, Caps Lock, `autoComplete`.
 - **Strength, NIST style:** `@virastack/password/strength` checks length (15–64, or 8 with a second factor), common passwords, repetition and personal info. The level grows with length, never with character classes.
-- **React Hook Form binding:** `@virastack/password/form` registers the password and confirm fields and keeps them checked against each other.
+- **Same hook, with or without a form library:** `useViraPassword()` works alone; `useViraPassword(form, schema)` binds it to React Hook Form like `useViraMask(form, schema)`. The rule is a plain `validate` function, so other form libraries can use it too.
 - **Same rules on the server:** `@virastack/password/server` runs the same policy in Server Actions.
 - **Leaked password check:** `@virastack/password/pwned` asks Have I Been Pwned with k-anonymity. Optional.
 - **Error keys, not messages:** `password.tooShort`, `password.mismatch`… Map them in your own i18n.
-- **Zero dependencies:** ~2 KB min+brotli for the hook; the strength engine only ships when you pass a policy.
+- **Zero dependencies:** ~3 KB min+brotli for the hook; the strength engine only ships when you pass a policy.
 
 ## Quick Start
 
@@ -35,7 +35,7 @@
 npm install @virastack/password
 ```
 
-Requires React and React DOM 18.2+ (React 19 supported); `@virastack/password/form` also needs React Hook Form 7.55+. Upgrading? See the [upgrade guide](https://virastack.com/password/docs/upgrade).
+Requires React and React DOM 18.2+ (React 19 supported); `useViraPassword(form, schema)` also needs React Hook Form 7.55+, which stays optional. Upgrading? See the [upgrade guide](https://virastack.com/password/docs/upgrade).
 
 ```tsx
 import { useViraPassword } from "@virastack/password";
@@ -61,17 +61,15 @@ export const policy = definePolicy(); // NIST: 15–64 characters
 ```
 
 ```tsx
-import { useViraPasswordForm } from "@virastack/password/form";
+import { useViraPassword } from "@virastack/password";
 import { useForm } from "react-hook-form";
 import { policy } from "@/lib/password-policy";
 
 function Signup() {
   const form = useForm({ defaultValues: { email: "", password: "", confirm: "" } });
-  const { password, confirm } = useViraPasswordForm(form, {
-    name: "password",
-    confirm: "confirm",
-    policy,
-    forbidden: ["email"], // field names
+  const { password, confirm } = useViraPassword(form, {
+    password: { policy, forbidden: ["email"] }, // field names
+    confirm: { matchWith: "password" },
   });
 
   return (
@@ -90,10 +88,11 @@ function Signup() {
 }
 ```
 
+- One entry per field, as in `useViraMask`. A key is the field name; set `name` when it differs (`secret: { name: "account.secret" }`). Each entry takes the options below, with `matchWith` and `forbidden` as field names, and `rules` for more React Hook Form rules (`required`, another `validate`).
 - `inputProps` already include `register()`; spread them alone.
-- Values come from `useWatch()`, so `reset()` and `setValue()` update the strength. The confirm field is re-checked when the password changes, and the password when the email changes, once the user has left the field or submitted.
+- Values are read from the form, so `reset()` and `setValue()` update the strength. A field is re-checked when the field it depends on changes (the confirm field with the password, the password with the email), once the user has left it or submitted.
 - `method="post"`: a submit before hydration never puts the password in the URL.
-- Without React Hook Form, or to share an input with a ViraStack Mask field, use `useViraPassword` with `value` and `rule` (below).
+- With another form library (TanStack Form, Formik…), or to share an input with a ViraStack Mask field, use `useViraPassword(options)` with `value` and pass `rule.validate` to its validator.
 
 ## Options
 
@@ -106,7 +105,7 @@ function Signup() {
 | `policy`, `forbidden` | Strength policy and values the password must not contain |
 | `matchWith` | The password a confirm field must repeat |
 | `normalization` | `"NFKC"` (default) or `"NFC"` for the `matchWith` comparison; follows `policy` when set |
-| `value` | Current value, e.g. from `useWatch()` |
+| `value` | Current value, when a form library or state holds it |
 | `disabled`, `readOnly` | Disable the toggle and mirror the state on the input |
 | `icons` | `{ show, hide }` custom icons |
 | `id`, `inputProps`, `btnProps` | Props merged into the generated ones (`inputProps.id` wins over `id`) |

@@ -52,16 +52,6 @@
         "default": "./dist/server.cjs"
       }
     },
-    "./form": {
-      "import": {
-        "types": "./dist/form.d.mts",
-        "default": "./dist/form.mjs"
-      },
-      "require": {
-        "types": "./dist/form.d.cts",
-        "default": "./dist/form.cjs"
-      }
-    },
     "./pwned": {
       "import": {
         "types": "./dist/pwned.d.mts",
@@ -163,7 +153,7 @@
       "name": "@virastack/password",
       "path": "dist/index.mjs",
       "import": "*",
-      "limit": "2.5 kB",
+      "limit": "3 kB",
       "ignore": [
         "react",
         "react-dom"
@@ -173,7 +163,7 @@
       "name": "@virastack/password (toggle only)",
       "path": "dist/index.mjs",
       "import": "{ useViraPassword }",
-      "limit": "2.5 kB",
+      "limit": "3 kB",
       "ignore": [
         "react",
         "react-dom"
@@ -190,17 +180,6 @@
       "path": "dist/server.mjs",
       "import": "*",
       "limit": "3.5 kB"
-    },
-    {
-      "name": "@virastack/password/form",
-      "path": "dist/form.mjs",
-      "import": "*",
-      "limit": "3 kB",
-      "ignore": [
-        "react",
-        "react-dom",
-        "react-hook-form"
-      ]
     },
     {
       "name": "@virastack/password/pwned",

@@ -15,7 +15,6 @@ const entries = {
   "@virastack/password/strength": ["definePolicy", "evaluate", "normalizePassword"],
   "@virastack/password/server": ["validatePassword", "definePolicy", "evaluate", "normalizePassword"],
   "@virastack/password/pwned": ["checkPwned"],
-  "@virastack/password/form": ["useViraPasswordForm"],
 };
 
 for (const [specifier, names] of Object.entries(entries)) {
@@ -27,8 +26,8 @@ for (const [specifier, names] of Object.entries(entries)) {
   }
 }
 
-const clientEntries = new Set(["index", "form"]);
-for (const file of ["index", "form", "strength", "server", "pwned"]) {
+const clientEntries = new Set(["index"]);
+for (const file of ["index", "strength", "server", "pwned"]) {
   for (const ext of ["mjs", "cjs"]) {
     const code = readFileSync(`dist/${file}.${ext}`, "utf8");
     const isClient = clientEntries.has(file);
@@ -36,14 +35,14 @@ for (const file of ["index", "form", "strength", "server", "pwned"]) {
     check(`dist/${file}.${ext} ${isClient ? "starts with" : "has no"} "use client"`, isClient ? client : !code.includes("use client"));
     if (!isClient) check(`dist/${file}.${ext} does not import React`, !/from ["']react|require\(["']react/.test(code));
   }
-  // Only the form entry may need react-hook-form, an optional peer.
-  if (file !== "form") {
-    check(`dist/${file}.mjs does not import react-hook-form`, !readFileSync(`dist/${file}.mjs`, "utf8").includes("react-hook-form"));
+  // react-hook-form is an optional peer: no entry may load it at runtime (the hook only uses its types).
+  for (const ext of ["mjs", "cjs"]) {
+    check(`dist/${file}.${ext} does not load react-hook-form`, !/from ["']react-hook-form|require\(["']react-hook-form/.test(readFileSync(`dist/${file}.${ext}`, "utf8")));
   }
 }
 
 // A relative import in a declaration file points at a sibling that may not exist for CJS.
-for (const file of ["index", "form", "strength", "server", "pwned"]) {
+for (const file of ["index", "strength", "server", "pwned"]) {
   for (const ext of ["d.mts", "d.cts"]) {
     check(`dist/${file}.${ext} is self-contained`, !/from ['"]\.\//.test(readFileSync(`dist/${file}.${ext}`, "utf8")));
   }
