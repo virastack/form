@@ -1,5 +1,11 @@
 # @virastack/address
 
+## 1.0.1
+
+### Changed
+
+- **README**: the Ecosystem line's Guide link now goes to [virastack.com/guide](https://virastack.com/guide) instead of the archived `virastack/guide` repository. No code changes.
+
 ## 1.0.0
 
 First release.
