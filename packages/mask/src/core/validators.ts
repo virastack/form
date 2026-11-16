@@ -106,16 +106,30 @@ export const IBAN_LENGTHS: Readonly<Record<string, number>> = {
   UA: 29, VA: 22, VG: 24, XK: 20, YE: 30,
 };
 
+export type IBANErrorKey = "iban.country" | "iban.length" | "iban.invalid" | "iban.checksum";
+
+/**
+ * Why an IBAN fails, as the `iban` preset's error key; `undefined` when it is valid.
+ * `iban.country`: it does not start with two A–Z letters. `iban.length`: not the length of its
+ * country (TR → 26), or outside 15–34 for a country the registry does not list.
+ * `iban.invalid`: the check digits or the account part hold a character an IBAN cannot have.
+ * `iban.checksum`: the ISO 13616 mod-97 check fails. Spaces and lowercase are accepted.
+ */
+export function ibanError(value: string): IBANErrorKey | undefined {
+  const iban = value.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}/.test(iban)) return "iban.country";
+  const length = IBAN_LENGTHS[iban.slice(0, 2)];
+  if (length === undefined ? iban.length < 15 || iban.length > 34 : iban.length !== length) return "iban.length";
+  if (!/^..\d{2}[A-Z0-9]+$/.test(iban)) return "iban.invalid";
+  return mod97(iban.slice(4) + iban.slice(0, 4)) === 1 ? undefined : "iban.checksum";
+}
+
 /**
  * IBAN check for every country: the country code sets the length (TR → 26),
  * then the ISO 13616 mod-97 checksum. Spaces and lowercase are accepted.
  */
 export function isValidIBAN(value: string): boolean {
-  const iban = value.replace(/\s/g, "").toUpperCase();
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return false;
-  const length = IBAN_LENGTHS[iban.slice(0, 2)];
-  if (length !== undefined && iban.length !== length) return false;
-  return mod97(iban.slice(4) + iban.slice(0, 4)) === 1;
+  return ibanError(value) === undefined;
 }
 
 /** ISO 13616 remainder: letters count as 10–35 (A = 10), then the number mod 97. */

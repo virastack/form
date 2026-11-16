@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMask, definePreset, getCardType, isValidIBAN, isValidTCKN, isValidVKN, presets, toMinorUnits } from "../src/core";
+import { createMask, definePreset, getCardType, getMaskPlaceholder, isValidIBAN, isValidTCKN, isValidVKN, presets, toMinorUnits } from "../src/core";
 import type { EditInput, Mask, MaskContext } from "../src/core";
 
 /** Types `text` at the end of the current display, one character at a time. */
@@ -159,11 +159,35 @@ describe("presets", () => {
     const mask = createMask("iban");
     expect(mask.format("gb82west12345698765432")).toBe("GB82 WEST 1234 5698 7654 32");
     expect(mask.validate("GB82WEST12345698765432")).toBeUndefined();
-    expect(mask.validate("GB82WEST12345698765433")).toBe("iban.invalid");
+    expect(mask.validate("GB82WEST12345698765433")).toBe("iban.checksum");
     expect(isValidIBAN("DE89 3704 0044 0532 0130 00")).toBe(true);
     expect(isValidIBAN("TR330006100519786457841326")).toBe(true);
     // the country code sets the length: a TR IBAN must have 26 characters
     expect(isValidIBAN("TR33000610051978645784132")).toBe(false);
+  });
+
+  it("iban names the reason it fails", () => {
+    const mask = createMask("iban");
+    // fewer than 15 characters: the pattern itself is not full yet
+    expect(mask.validate("TR33000610")).toBe("iban.incomplete");
+    // the country code is not two A–Z letters
+    expect(mask.validate("ÇÇ330006100519786457841326")).toBe("iban.country");
+    // TR needs 26 characters, DE 22
+    expect(mask.validate("TR33000610051978645784132")).toBe("iban.length");
+    expect(mask.validate("DE8937040044053201300012")).toBe("iban.length");
+    // a letter outside A–Z in the account part
+    expect(mask.validate("GB82WEŞT12345698765432")).toBe("iban.invalid");
+    expect(mask.validate("TR330006100519786457841327")).toBe("iban.checksum");
+    // a country the registry does not list still passes on length and mod-97
+    expect(mask.validate("ZZ721234567890123")).toBeUndefined();
+    expect(mask.validate("ZZ731234567890123")).toBe("iban.checksum");
+  });
+
+  it("iban keeps iban.invalid for a custom validate that returns false", () => {
+    const mask = createMask({ preset: "iban", validate: (value) => value.startsWith("TR") });
+    expect(mask.validate("DE89370400440532013000")).toBe("iban.invalid");
+    expect(mask.validate("TR330006100519786457841327")).toBe("iban.checksum");
+    expect(mask.validate("TR330006100519786457841326")).toBeUndefined();
   });
 
   it("card detects Amex and checks Luhn", () => {
@@ -238,7 +262,8 @@ describe("presets", () => {
 
   it("country variants keep the preset name in error keys", () => {
     expect(createMask({ preset: "phone", country: "TR" }).name).toBe("phone");
-    expect(createMask({ preset: "iban", country: "TR" }).validate("TR330006100519786457841327")).toBe("iban.invalid");
+    expect(createMask({ preset: "iban", country: "TR" }).validate("TR330006100519786457841327")).toBe("iban.checksum");
+    expect(createMask({ preset: "iban", country: "TR" }).validate("TR33000610051978645784132")).toBe("iban.incomplete");
     expect(createMask({ preset: "iban", country: "TR" }).format("GB82WEST")).toBe("TR82");
   });
 
@@ -258,6 +283,58 @@ describe("presets", () => {
   it("unknown presets fall back to plain text", () => {
     const mask = createMask("nope" as "phone");
     expect(mask.format("abc")).toBe("abc");
+  });
+});
+
+describe("getMaskPlaceholder", () => {
+  it("draws every character to type as an underscore and keeps the separators", () => {
+    expect(getMaskPlaceholder({ preset: "phone", country: "TR" })).toBe("(___) ___ __ __");
+    expect(getMaskPlaceholder("tckn")).toBe("___________");
+    expect(getMaskPlaceholder({ mask: "aa-9999" })).toBe("__-____");
+  });
+
+  it("keeps fixed parts and escaped characters", () => {
+    expect(getMaskPlaceholder({ preset: "iban", country: "TR" })).toBe("TR__ ____ ____ ____ ____ ____ __");
+    expect(getMaskPlaceholder("phone")).toBe("+_______");
+    expect(getMaskPlaceholder({ mask: "\\9 99" })).toBe("9 __");
+  });
+
+  it("leaves optional parts out", () => {
+    expect(getMaskPlaceholder({ mask: "aa-9999[9]" })).toBe("__-____");
+    expect(getMaskPlaceholder("iban")).toBe("____ ____ ____ ___");
+    expect(getMaskPlaceholder("plate")).toBe("__ _ __");
+  });
+
+  it("returns undefined when at most one character is required", () => {
+    expect(getMaskPlaceholder("fullName")).toBeUndefined();
+    expect(getMaskPlaceholder({ mask: "9[999]" })).toBeUndefined();
+    expect(getMaskPlaceholder({ mask: "[9999]" })).toBeUndefined();
+    expect(getMaskPlaceholder({ mask: "99" })).toBe("__");
+  });
+
+  it("reads a runtime pattern as it is for an empty field", () => {
+    expect(getMaskPlaceholder("card")).toBe("____ ____ ____ ____");
+    expect(getMaskPlaceholder("cvv")).toBe("___");
+    expect(getMaskPlaceholder({ mask: ["999", "9999"] })).toBe("___");
+    expect(getMaskPlaceholder({ mask: (value: string) => (value.length > 3 ? "9999" : "99-9") })).toBe("__-_");
+  });
+
+  it("uses custom tokens and definePreset masks", () => {
+    expect(getMaskPlaceholder({ mask: "H-99", tokens: { H: /[0-9a-f]/i } })).toBe("_-__");
+    expect(getMaskPlaceholder(definePreset("orderNo", { mask: "aa-9999", transform: "uppercase" }))).toBe("__-____");
+  });
+
+  it("returns undefined for number, currency and date masks", () => {
+    for (const name of ["number", "currency", "date", "expiry"] as const) expect(getMaskPlaceholder(name)).toBeUndefined();
+    expect(getMaskPlaceholder({ number: { scale: 2 } })).toBeUndefined();
+    expect(getMaskPlaceholder({ currency: "TRY" })).toBeUndefined();
+    expect(getMaskPlaceholder({ date: { format: "MM/YYYY" } })).toBeUndefined();
+    expect(getMaskPlaceholder({ preset: "number", country: "TR" })).toBeUndefined();
+  });
+
+  it("returns undefined for an unknown preset", () => {
+    expect(getMaskPlaceholder("nope" as never)).toBeUndefined();
+    expect(getMaskPlaceholder({ preset: "nope" } as never)).toBeUndefined();
   });
 });
 

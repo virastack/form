@@ -81,6 +81,25 @@ async function checks(base, mode) {
   const table = await page.getByTestId("server-table").textContent();
   check("server entry formats in an RSC", table.includes("(555) 123 45 67") && table.includes("123456"), true);
 
+  check("server entry builds a placeholder in an RSC", table.includes("(___) ___ __ __") && table.includes("placeholder currencynone"), true);
+
+  // getMaskPlaceholder: the schema entry goes in, the placeholder attribute comes out
+  const placeholder = (label) => field(label).getAttribute("placeholder");
+  check("placeholder phone TR", await placeholder("phone"), "(___) ___ __ __");
+  check("placeholder phone E.164", await placeholder("intl"), "+_______");
+  check("placeholder tckn", await placeholder("tckn"), "___________");
+  check("placeholder iban TR keeps TR", await placeholder("iban"), "TR__ ____ ____ ____ ____ ____ __");
+  check("placeholder iban any country", await placeholder("ibanAny"), "____ ____ ____ ___");
+  check("placeholder card", await placeholder("card"), "____ ____ ____ ____");
+  check("placeholder cvv with a linked field", await placeholder("cvv"), "___");
+  check("placeholder nested field", await placeholder("zip"), "_____");
+  check("placeholder custom pattern drops optional parts", await placeholder("plate"), "__ _ __");
+  for (const label of ["price", "qty", "birth", "expiry", "start"]) {
+    check(`no placeholder on ${label}`, await placeholder(label), null);
+  }
+  check("an empty field shows the placeholder", await page.getByPlaceholder("___________", { exact: true }).isVisible(), true);
+  check("placeholder is not the value", await value("tckn"), "");
+
   // SSR default values
   check("SSR default phone", await value("phone"), "(555) 123 45 67");
   check("SSR default price", await value("price"), "₺1.234,5");
@@ -166,6 +185,35 @@ async function checks(base, mode) {
   await page.getByRole("button", { name: "Submit", exact: true }).click();
   await page.waitForTimeout(300);
   check("client error via maskResolver", (await page.getByTestId("tckn-error").textContent()).length > 0, true);
+
+  // IBAN error keys name the reason, on the server and the client
+  const ibanErrors = async (iban, ibanAny) => {
+    await field("iban").fill("");
+    await type("iban", iban);
+    await field("ibanAny").fill("");
+    await type("ibanAny", ibanAny);
+    await page.getByRole("button", { name: "Submit FormData" }).click();
+    await page.waitForTimeout(500);
+    const server = (await result()).errors ?? {};
+    await page.getByRole("button", { name: "Submit", exact: true }).click();
+    await page.waitForTimeout(300);
+    const client = async (name) => page.getByTestId(`${name}-error`).textContent().catch(() => "");
+    return { server, iban: await client("iban"), ibanAny: await client("ibanAny") };
+  };
+  let ibans = await ibanErrors("TR330006100519786457841327", "TR33000610051978645784132");
+  check("server iban.checksum", ibans.server.iban, "iban.checksum");
+  check("client iban.checksum", ibans.iban, "iban.checksum");
+  check("server iban.length", ibans.server.ibanAny, "iban.length");
+  check("client iban.length", ibans.ibanAny, "iban.length");
+  ibans = await ibanErrors("TR3300061005197864578413", "çç330006100519786457841326");
+  check("server iban.incomplete", ibans.server.iban, "iban.incomplete");
+  check("client iban.incomplete", ibans.iban, "iban.incomplete");
+  check("server iban.country", ibans.server.ibanAny, "iban.country");
+  check("client iban.country", ibans.ibanAny, "iban.country");
+  ibans = await ibanErrors("TR330006100519786457841326", "gb82weşt12345698765432");
+  check("a valid TR IBAN has no error", [ibans.server.iban, ibans.iban], (list) => list.every((item) => !item));
+  check("server iban.invalid stays as the fallback", ibans.server.ibanAny, "iban.invalid");
+  check("client iban.invalid stays as the fallback", ibans.ibanAny, "iban.invalid");
 
   // reset() and setValue()
   await page.getByRole("button", { name: "Reset", exact: true }).click();

@@ -24,7 +24,7 @@
 - **Type-safe:** Field names, `from` links and rules are checked against your form type. No `any`.
 - **Turkey ready:** TCKN, VKN, Turkish IBAN and phone, registration plates, TRY with kuruş, and the bank behind an IBAN.
 - **Server support:** `@virastack/mask/server` parses and validates the same schema in Server Actions.
-- **Zero dependencies:** under 10 KB min+brotli for everything; less once tree-shaken.
+- **Zero dependencies:** about 10 KB min+brotli for everything; less once tree-shaken.
 
 ## Quick Start
 
@@ -101,6 +101,8 @@ useViraMask(form, {
 
 Errors are keys such as `tckn.invalid`, `phone.incomplete` or `date.min`. Map them to messages in your own i18n layer.
 
+The `iban` preset names the reason (2.4+): `iban.country` (it does not start with two A–Z letters), `iban.length` (not the length of its country, e.g. 26 for TR) and `iban.checksum` (mod-97 fails). `iban.invalid` stays for anything else, so use it as the fallback message.
+
 ## Resolvers (Zod, Valibot)
 
 React Hook Form skips `register` validation when a resolver is set. Wrap it so mask errors still show up:
@@ -131,14 +133,17 @@ The root import has `"use client"`. In Server Components and Actions, import fro
 ## Core
 
 ```ts
-import { createMask, definePreset, toMinorUnits } from "@virastack/mask/server";
+import { createMask, definePreset, getMaskPlaceholder, toMinorUnits } from "@virastack/mask/server";
 
 const orderNo = definePreset("orderNo", { mask: "aa-9999", transform: "uppercase" });
 createMask(orderNo).format("ab1234"); // "AB-1234"
 createMask("plate").format("34abc123"); // "34 ABC 123"
 createMask({ preset: "currency", country: "TR" }).format("1234.5"); // "₺1.234,5"
 toMinorUnits("1234.56", "TRY"); // 123456
+getMaskPlaceholder({ preset: "phone", country: "TR" }); // "(___) ___ __ __"
 ```
+
+`getMaskPlaceholder` (2.4+) takes what `createMask` takes and returns a placeholder for a pattern mask: `_` for every character to type, separators and `{fixed}` parts as they are, optional parts left out. Number, currency and date masks return `undefined`, and so does `fullName`.
 
 ### Bank from a Turkish IBAN
 

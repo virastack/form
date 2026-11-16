@@ -1,6 +1,6 @@
 "use client";
 
-import { maskResolver, useViraMask } from "@virastack/mask";
+import { getMaskPlaceholder, maskResolver, useViraMask } from "@virastack/mask";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { checkoutMasks, checkoutSchema, type CheckoutInput } from "@/lib/masks";
@@ -45,18 +45,18 @@ export function CheckoutForm() {
       {Object.entries(rest).map(([key, props]) => (
         <label key={key}>
           {key}
-          <input aria-label={key} {...props} />
+          <input aria-label={key} {...props} placeholder={getMaskPlaceholder(checkoutMasks[key as keyof typeof rest])} />
           {err(key)}
         </label>
       ))}
       <label>
         card
-        <input aria-label="card" {...card} />
+        <input aria-label="card" {...card} placeholder={getMaskPlaceholder("card")} />
         {err("card")}
       </label>
       <label>
         cvv
-        <input aria-label="cvv" {...cvv} />
+        <input aria-label="cvv" {...cvv} placeholder={getMaskPlaceholder(checkoutMasks.cvv)} />
         {err("cvv")}
       </label>
       <label>

@@ -1,5 +1,5 @@
 import type { MaskContext, MaskKind, MaskOptions, Preset } from "./types";
-import { getCardType, isValidIBAN, isValidLuhn, isValidPlate, isValidTCKN, isValidVKN, toPlateLetter } from "./validators";
+import { getCardType, ibanError, isValidLuhn, isValidPlate, isValidTCKN, isValidVKN, toPlateLetter } from "./validators";
 
 export type KindOfOptions<O> = O extends { mask: unknown }
   ? "pattern"
@@ -61,18 +61,21 @@ const phoneTR = definePreset("phone", {
   autoComplete: "tel-national",
 });
 
+/** A failing IBAN names its reason: `iban.country`, `iban.length`, `iban.invalid` or `iban.checksum`. */
+const checkIBAN = (value: string) => ibanError(value) ?? true;
+
 const iban = definePreset("iban", {
   mask: "aa99 **** **** ***[* **** **** **** **** **** **]",
   transform: "uppercase",
-  validate: (value: string) => isValidIBAN(value),
+  validate: checkIBAN,
   inputMode: "text",
   autoComplete: "off",
 });
 
-/** `{ preset: "iban", country: "TR" }`: `TR` + 24 digits, `TR` kept in the value. */
+/** `{ preset: "iban", country: "TR" }`: `TR` + 24 digits, `TR` kept in the value. Its only IBAN error is `iban.checksum`. */
 const ibanTR = definePreset("iban", {
   mask: "{TR}99 9999 9999 9999 9999 9999 99",
-  validate: (value: string) => isValidIBAN(value),
+  validate: checkIBAN,
   inputMode: "numeric",
   autoComplete: "off",
 });

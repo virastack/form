@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   createMask,
   definePreset,
+  getMaskPlaceholder,
   isValidPlate,
   maskResolver,
   parseMasked,
@@ -124,5 +125,12 @@ describe("types", () => {
     const result = parseMasked({ phone: { preset: "phone", country: "TR" }, zip: { name: "address.zip", mask: "99999" } }, {});
     if (result.success) expectTypeOf(result.data.phone).toEqualTypeOf<string>();
     else expectTypeOf(result.errors).toEqualTypeOf<Record<string, string>>();
+  });
+
+  it("getMaskPlaceholder takes what createMask takes", () => {
+    expectTypeOf(getMaskPlaceholder).parameter(0).toEqualTypeOf<Parameters<typeof createMask>[0]>();
+    expectTypeOf(getMaskPlaceholder({ preset: "phone", country: "TR" })).toEqualTypeOf<string | undefined>();
+    // @ts-expect-error country only goes on presets that have a national layout
+    getMaskPlaceholder({ preset: "card", country: "TR" });
   });
 });

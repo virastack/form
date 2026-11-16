@@ -3,7 +3,7 @@ import { useForm, type UseFormReturn } from "react-hook-form";
 import { describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { useViraMask } from "../../src";
+import { getMaskPlaceholder, useViraMask } from "../../src";
 
 type F = { phone: string; card: string; cvv: string; price: string; date: string };
 let form!: UseFormReturn<F>;
@@ -119,5 +119,42 @@ describe("in a real browser", () => {
     await userEvent.keyboard("{Backspace}{Backspace}");
     expect(el("plate").value).toBe("34 KIL 1");
     expect(plateForm.getValues("plate")).toBe("34KIL1");
+  });
+
+  it("shows the mask placeholder until the user types, and names why an IBAN fails", async () => {
+    const masks = { iban: { preset: "iban", country: "TR" }, price: "currency" } as const;
+    let ibanForm!: UseFormReturn<{ iban: string; price: string }>;
+    function Iban() {
+      ibanForm = useForm<{ iban: string; price: string }>({ defaultValues: { iban: "", price: "" }, mode: "onChange" });
+      const { iban, price } = useViraMask(ibanForm, masks);
+      return (
+        <form>
+          <input aria-label="iban" {...iban} placeholder={getMaskPlaceholder(masks.iban)} />
+          <input aria-label="price" {...price} placeholder={getMaskPlaceholder(masks.price)} />
+          <output aria-label="error">{ibanForm.formState.errors.iban?.message}</output>
+        </form>
+      );
+    }
+    await render(<Iban />);
+    const input = el("iban");
+    expect(input.placeholder).toBe("TR__ ____ ____ ____ ____ ____ __");
+    expect(input.matches(":placeholder-shown")).toBe(true);
+    expect(el("price").hasAttribute("placeholder")).toBe(false);
+
+    await userEvent.type(page.getByLabelText("iban"), "33000610051978645784");
+    expect(input.matches(":placeholder-shown")).toBe(false);
+    expect(input.value).toBe("TR33 0006 1005 1978 6457 84");
+    await expect.element(page.getByLabelText("error")).toHaveTextContent("iban.incomplete");
+
+    await userEvent.type(page.getByLabelText("iban"), "1327");
+    await expect.element(page.getByLabelText("error")).toHaveTextContent("iban.checksum");
+
+    await userEvent.keyboard("{Backspace}6");
+    expect(input.value).toBe("TR33 0006 1005 1978 6457 8413 26");
+    await expect.element(page.getByLabelText("error")).toHaveTextContent("");
+    expect(ibanForm.getValues("iban")).toBe("TR330006100519786457841326");
+
+    await userEvent.clear(page.getByLabelText("iban"));
+    expect(input.matches(":placeholder-shown")).toBe(true);
   });
 });

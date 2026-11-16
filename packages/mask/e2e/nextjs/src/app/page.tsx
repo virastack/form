@@ -1,4 +1,4 @@
-import { createMask, isValidTCKN, toMinorUnits } from "@virastack/mask/server";
+import { createMask, getMaskPlaceholder, isValidTCKN, toMinorUnits } from "@virastack/mask/server";
 import { CheckoutForm } from "./checkout-form";
 
 // Server Component: the server entry formats without "use client".
@@ -9,6 +9,8 @@ const rows = [
   ["date", createMask("date").format("2026-02-01")],
   ["tckn valid", String(isValidTCKN("10000000146"))],
   ["minor units", String(toMinorUnits("1234.56", "TRY"))],
+  ["placeholder", getMaskPlaceholder({ preset: "phone", country: "TR" }) ?? "none"],
+  ["placeholder currency", getMaskPlaceholder("currency") ?? "none"],
 ];
 
 export default function Page() {

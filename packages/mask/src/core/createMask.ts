@@ -70,7 +70,7 @@ function runValidators(validators: readonly Validator[], value: string, ctx: Mas
   return undefined;
 }
 
-function resolveSpec(spec: MaskSpec): { name: string; options: MaskOptions; validators: Validator[] } {
+export function resolveSpec(spec: MaskSpec): { name: string; options: MaskOptions; validators: Validator[] } {
   if (typeof spec === "string") {
     if (isPresetName(spec)) return fromPreset(presets[spec]);
     warn(`Unknown preset "${spec}". The field is left unmasked.`);

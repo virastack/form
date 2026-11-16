@@ -1,4 +1,5 @@
 export { createMask, type MaskSpec, type PresetWithOverrides } from "./createMask";
+export { getMaskPlaceholder } from "./placeholder";
 export { definePreset, presets, type Country, type PresetName, type Presets } from "./presets";
 export {
   getCardType,

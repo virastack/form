@@ -1,5 +1,17 @@
 # @virastack/mask
 
+## 2.4.0
+
+### Added
+
+- **`getMaskPlaceholder(spec)`**: placeholder text from a mask, such as `(___) ___ __ __` for `{ preset: "phone", country: "TR" }`. It takes what `createMask` takes. Every character to type is `_`; separators, `{fixed}` parts (`TR__ ____ …`) and escaped characters stay as they are; optional `[...]` parts are left out. A mask that picks its pattern at runtime (`card`, `cvv`, `plate`, a function or an array) is read as it is for an empty field. Number, currency and date masks, `expiry` included, and an unknown preset return `undefined`; so does a mask with at most one required character, such as `fullName`. It is a pure function on the root and `/server` entries; the hook does not set a placeholder on its own.
+- **Detailed IBAN error keys**: the `iban` preset now names the reason. `iban.country`: the value does not start with two A–Z letters. `iban.length`: not the length of its country (26 for TR, 22 for DE), or outside 15–34 for a country the IBAN registry does not list. `iban.checksum`: the mod-97 check fails. `{ preset: "iban", country: "TR" }` fixes the country and the length, so its only new key is `iban.checksum`.
+
+### Changed
+
+- **`iban.invalid` is now the fallback key**: a wrong checksum used to return `iban.invalid` and now returns `iban.checksum`. `iban.invalid` remains for a character an IBAN cannot have (a letter outside A–Z) and for a custom `validate` that returns `false`. If your messages map only has `iban.invalid`, add the three new keys or fall back to it for any other `iban.*` key. The keys always start with `iban.`: a preset of your own that spreads `presets.iban.options` used to return `<name>.invalid` for a wrong IBAN and now returns the `iban.*` key. `isValidIBAN` gives the same answers as before; a country the registry does not list still passes on length and mod-97.
+- **Bundle size**: the root entry is 10.07 kB min+brotli (was 9.95 kB); its size limit is now 10.2 kB.
+
 ## 2.3.0
 
 ### Added
