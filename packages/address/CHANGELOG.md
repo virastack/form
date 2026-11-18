@@ -1,5 +1,11 @@
 # @virastack/address
 
+## 1.0.2
+
+### Changed
+
+- **npm README**: republished so npm renders the README again; the badges on the 1.0.1 npm page did not load. No code changes.
+
 ## 1.0.1
 
 ### Changed
