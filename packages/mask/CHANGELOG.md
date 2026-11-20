@@ -1,5 +1,11 @@
 # @virastack/mask
 
+## 2.4.1
+
+### Changed
+
+- **npm README**: the hero logo is the new ViraStack lockup, in a light and a dark version. No code changes.
+
 ## 2.4.0
 
 ### Added

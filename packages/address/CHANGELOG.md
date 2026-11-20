@@ -1,5 +1,11 @@
 # @virastack/address
 
+## 1.0.3
+
+### Changed
+
+- **npm README**: the hero logo is the new ViraStack lockup, in a light and a dark version. No code changes.
+
 ## 1.0.2
 
 ### Changed

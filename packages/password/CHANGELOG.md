@@ -1,5 +1,11 @@
 # @virastack/password
 
+## 1.2.1
+
+### Changed
+
+- **npm README**: the hero logo is the new ViraStack lockup, in a light and a dark version. No code changes.
+
 ## 1.2.0
 
 The policy now follows NIST SP 800-63B-4 more closely. The API stays the same, but the same password can get a different result, so check your tests that pin a `level` or an issue.
