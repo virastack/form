@@ -1,7 +1,11 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/password" target="_blank" rel="noreferrer">
-  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo.png" alt="ViraStack Password" height="120" style="max-width: 100%;" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png" />
+    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/password/assets/logo-light.png" alt="ViraStack Password" height="80" style="max-width: 100%;" />
+  </picture>
 </a>
 
 *Accessible password hook for React: visibility, NIST-style strength, confirmation, server validation and leaked password checks*

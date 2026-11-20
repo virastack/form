@@ -1,7 +1,11 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form" target="_blank" rel="noreferrer">
-  <img src="https://raw.githubusercontent.com/virastack/form/main/assets/logo.png" alt="ViraStack Form" height="120" style="max-width: 100%;" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/assets/logo-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/assets/logo-light.png" />
+    <img src="https://raw.githubusercontent.com/virastack/form/main/assets/logo-light.png" alt="ViraStack Form" height="80" style="max-width: 100%;" />
+  </picture>
 </a>
 
 *Headless React form hooks: input masks, passwords and Turkish addresses*

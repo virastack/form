@@ -1,7 +1,11 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/mask" target="_blank" rel="noreferrer">
-  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo.png" alt="ViraStack Mask" height="120" style="max-width: 100%;" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png" />
+    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/mask/assets/logo-light.png" alt="ViraStack Mask" height="80" style="max-width: 100%;" />
+  </picture>
 </a>
 
 *Zero-dependency input masks for React Hook Form, with Turkish presets (TCKN, VKN, IBAN, plate) and server validation*

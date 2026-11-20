@@ -1,7 +1,11 @@
 <div align="center">
 
 <a href="https://github.com/virastack/form/tree/main/packages/address" target="_blank" rel="noreferrer">
-  <img src="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo.png" alt="ViraStack Address" height="120" style="max-width: 100%;" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-light.png" />
+    <img src="https://raw.githubusercontent.com/virastack/form/main/packages/address/assets/logo-light.png" alt="ViraStack Address" height="80" style="max-width: 100%;" />
+  </picture>
 </a>
 
 *Headless Turkish address hook for React: chained province, district and neighbourhood selects, derived postal codes, server validation and the PTT dataset*
